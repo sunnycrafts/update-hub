@@ -1,0 +1,110 @@
+using UpdateHub.Core; using UpdateHub.Models;
+int pass=0, fail=0;
+void Chk(string label, object? got, object? want){
+  bool ok = string.Equals(got?.ToString(), want?.ToString(), StringComparison.Ordinal);
+  if(ok) pass++; else { fail++; Console.WriteLine($"  FAIL {label}: got '{got}' want '{want}'"); }
+}
+Console.WriteLine("== version compare (neg = installed older) ==");
+Chk("3.0.18 vs 3.0.21", VersionComparer.Compare("3.0.18","3.0.21"), -1);
+Chk("25.00 vs 25.01", VersionComparer.Compare("25.00","25.01"), -1);
+Chk("3.0 vs 3.0.0", VersionComparer.Compare("3.0","3.0.0"), 0);
+Chk("ad 9.7.9 vs 9.7.11", VersionComparer.Compare("ad 9.7.9","9.7.11"), -1);
+Chk("139.0.7258.128 vs 140.0.7321", VersionComparer.Compare("139.0.7258.128","140.0.7321"), -1);
+Chk("26.1.5.0370 vs 26.1.5.371", VersionComparer.Compare("26.1.5.0370","26.1.5.371"), -1);
+Chk("v1.2.3 vs 1.2.3", VersionComparer.Compare("v1.2.3","1.2.3"), 0);
+Chk("1.0.0-beta vs 1.0.0", VersionComparer.Compare("1.0.0-beta","1.0.0"), -1);
+Chk("2.0 vs 1.9 (newer)", VersionComparer.Compare("2.0","1.9"), 1);
+Chk("junk vs 1.0 -> null", VersionComparer.Compare("abc","1.0"), null);
+Chk("year vs semver -> null", VersionComparer.Compare("2022.1.3","24.1"), null);
+Chk("2025.3 vs 2026.1 (both yr)", VersionComparer.Compare("2025.3","2026.1"), -1);
+Chk("1.0 vs 900.0 -> null(scheme)", VersionComparer.Compare("1.0","900.0"), null);
+Console.WriteLine("== majors/minors behind ==");
+Chk("majors 31.0->32.1", VersionComparer.MajorsBehind("31.0","32.1"), 1);
+Chk("minors 3.0.18->3.0.21", VersionComparer.MinorsBehind("3.0.18","3.0.21"), 0);
+Chk("minors 25.00->25.01", VersionComparer.MinorsBehind("25.00","25.01"), 1);
+Chk("majors same", VersionComparer.MajorsBehind("3.7.7","3.7.8"), 0);
+Console.WriteLine("== age behind (calendar) ==");
+Chk("8Nov2022->5Apr2025", AgeBehind.Between(new DateTime(2022,11,8), new DateTime(2025,4,5)).Long, "2 years, 4 months, 28 days");
+Chk("  ..short", AgeBehind.Between(new DateTime(2022,11,8), new DateTime(2025,4,5)).Short, "2 yr 4 mo");
+Chk("10Jun2026->22Jul2026", AgeBehind.Between(new DateTime(2026,6,10), new DateTime(2026,7,22)).Short, "42 days");
+Chk("31Jan->1Mar borrow", AgeBehind.Between(new DateTime(2025,1,31), new DateTime(2025,3,1)).Long, "1 month, 1 day");
+Chk("exact 1yr", AgeBehind.Between(new DateTime(2024,3,15), new DateTime(2025,3,15)).Long, "1 year");
+Chk("leap 29Feb", AgeBehind.Between(new DateTime(2024,2,29), new DateTime(2025,3,1)).Long, "1 year, 1 day");
+Chk("band 2yr+", AgeBehind.Between(new DateTime(2022,11,8), new DateTime(2025,4,5)).Band, AgeBand.VeryOutdated);
+Chk("band 42d", AgeBehind.Between(new DateTime(2026,6,10), new DateTime(2026,7,22)).Band, AgeBand.Recent);
+Chk("unknown", AgeBehind.Between(null, new DateTime(2025,1,1)).Short, "—");
+Console.WriteLine("== name normalize ==");
+Chk("Audacity 3.7.7", NameNormalizer.Normalize("Audacity 3.7.7"), "audacity");
+Chk("Apple App Support (64-bit)", NameNormalizer.Normalize("Apple Application Support (64-bit)"), "appleapplicationsupport");
+Chk("AutoCAD - English", NameNormalizer.Clean("Autodesk AutoCAD 2022 - English"), "Autodesk AutoCAD 2022");
+Chk("Office 2019 keeps yr", NameNormalizer.Clean("Microsoft Office 2019"), "Microsoft Office 2019");
+Chk("AutoCAD22 != AutoCAD24", NameNormalizer.Normalize("AutoCAD 2022")==NameNormalizer.Normalize("AutoCAD 2024"), false);
+Chk("31Dec->1Jan", AgeBehind.Between(new DateTime(2024,12,31), new DateTime(2025,1,1)).Long, "1 day");
+Chk("Mar31->Apr30 (Long=calendar)", AgeBehind.Between(new DateTime(2025,3,31), new DateTime(2025,4,30)).Long, "1 month");
+Chk("Mar31->Apr30 (Short=days)", AgeBehind.Between(new DateTime(2025,3,31), new DateTime(2025,4,30)).Short, "30 days");
+Chk("3yr2mo spec", AgeBehind.Between(new DateTime(2021,3,24), new DateTime(2026,7,25)).Short, "5 yr 4 mo");
+Chk("AURA x64", NameNormalizer.Normalize("AURA lighting effect add-on x64"), "auralightingeffectaddon");
+Chk("VLC media player", NameNormalizer.Normalize("VLC media player"), "vlcmediaplayer");
+Chk("7-Zip 25.00 (x64)", NameNormalizer.Normalize("7-Zip 25.00 (x64)"), "7zip");
+Chk("strip publisher", NameNormalizer.StripPublisher("autodeskautocad","Autodesk"), "autocad");
+
+Console.WriteLine("== releases-missed interval (installed, latest] ==");
+string[] hist = { "1.4.1.1030", "1.4.1.1031", "1.4.1.1032", "1.5.0.1391", "1.5.0.1392", "1.5.0.1393" };
+int Missed(string installed, string? latest) {
+    int n = 0;
+    foreach (var v in hist) {
+        if (VersionComparer.Compare(installed, v) is not { } cmp || cmp >= 0) continue;
+        if (latest is not null && VersionComparer.Compare(v, latest) is { } up && up > 0) continue;
+        n++;
+    }
+    return n;
+}
+Chk("bounded by latest", Missed("1.4.1.1030", "1.4.1.1032"), 2);
+Chk("unbounded (the old bug)", Missed("1.4.1.1030", null), 5);
+Chk("already on latest", Missed("1.4.1.1032", "1.4.1.1032"), 0);
+
+Console.WriteLine("== commit hashes rejected as versions ==");
+bool IsVer(string c) {
+    if (System.Text.RegularExpressions.Regex.IsMatch(c, "^[0-9a-f]{7,40}$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase) && c.Any(char.IsLetter)) return false;
+    if (!System.Text.RegularExpressions.Regex.IsMatch(c, @"^\d+(\.\d+)*")) return false;
+    var head = c.Split('.', '-', '_')[0];
+    if (head.Length > 4 && head.All(char.IsDigit)) return false;
+    return true;
+}
+Chk("sha rejected", IsVer("4114c11a9ec5320e"), false);
+Chk("short sha rejected", IsVer("a1b2c3d"), false);
+Chk("normal version ok", IsVer("3.5.9"), true);
+Chk("year version ok", IsVer("2025.3"), true);
+Chk("date stamp rejected", IsVer("20250731"), false);
+Chk("chrome version ok", IsVer("140.0.7321.128"), true);
+Chk("long dotted ok", IsVer("1.4.1.1030"), true);
+
+Console.WriteLine("== same-product version tolerance (registry vs winget precision) ==");
+Chk("8.0.29.36224 ~ 8.0.29", VersionComparer.IsSameProductVersion("8.0.29.36224","8.0.29"), true);
+Chk("6.0.36.34217 ~ 6.0.36", VersionComparer.IsSameProductVersion("6.0.36.34217","6.0.36"), true);
+Chk("3.1.32.31915 ~ 3.1.32", VersionComparer.IsSameProductVersion("3.1.32.31915","3.1.32"), true);
+Chk("identical full match", VersionComparer.IsSameProductVersion("1.0.2600.1","1.0.2600.1"), true);
+Chk("8.0.29 vs 6.0.36 differ", VersionComparer.IsSameProductVersion("8.0.29","6.0.36"), false);
+Chk("8.0.29.1 vs 8.0.30 differ", VersionComparer.IsSameProductVersion("8.0.29.1","8.0.30"), false);
+Chk("single seg 8 ~ 8", VersionComparer.IsSameProductVersion("8","8"), true);
+Chk("8 vs 8.0.29 too vague", VersionComparer.IsSameProductVersion("8","8.0.29"), false);
+// Python encodes a build number where winget puts a patch, so these must NOT merge:
+// treating them as one product could just as easily merge 3.14.6 with 3.14.7150.0.
+Chk("py 3.14.6150.0 vs 3.14.6 kept apart", VersionComparer.IsSameProductVersion("3.14.6150.0","3.14.6"), false);
+
+Console.WriteLine("== elevated batch status mapping (matches the PowerShell script's JSON shape) ==");
+Chk("success -> Success", ElevatedUpdateRunner.InterpretStatus("success", "exit=0", "Successfully installed"), UpdateOutcome.Success);
+Chk("failed exit=1603 -> Failed", ElevatedUpdateRunner.InterpretStatus("failed", "exit=1603", "simulated failure"), UpdateOutcome.Failed);
+Chk("failed exit=1618 -> Failed", ElevatedUpdateRunner.InterpretStatus("failed", "exit=1618", "another installation is in progress"), UpdateOutcome.Failed);
+Chk("no applicable update -> NoUpdateNeeded", ElevatedUpdateRunner.InterpretStatus("failed", "exit=8A150011", "No applicable update found"), UpdateOutcome.NoUpdateNeeded);
+Chk("describe success", ElevatedUpdateRunner.DescribeOutcome(UpdateOutcome.Success, "exit=0", "ok"), "Updated (elevated background).");
+Chk("describe no-update", ElevatedUpdateRunner.DescribeOutcome(UpdateOutcome.NoUpdateNeeded, "x", "y"), "No applicable update was found.");
+{
+    var longDetail = new string('x', 500);
+    var described = ElevatedUpdateRunner.DescribeOutcome(UpdateOutcome.Failed, "exit=1603", longDetail);
+    Chk("describe truncates long detail", described.Length <= 180, true);
+    Chk("describe keeps message prefix", described.StartsWith("exit=1603"), true);
+}
+Console.WriteLine($"\n{pass} passed, {fail} failed");
+return fail==0?0:1;

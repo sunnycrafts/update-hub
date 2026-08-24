@@ -1,0 +1,217 @@
+<UserControl x:Class="UpdateHub.UI.Views.DashboardPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="Home" FontSize="28" FontWeight="SemiBold" Margin="4,4,0,2"
+                       Foreground="{StaticResource InkBrush}" />
+            <TextBlock FontSize="12" Margin="4,0,0,14" Foreground="{StaticResource MutedInkBrush}">
+                <Run Text="Last scan: " /><Run Text="{Binding LastScanText, Mode=OneWay}" />
+                <Run Text="   ·   Last update: " /><Run Text="{Binding LastUpdateText, Mode=OneWay}" />
+                <Run Text="   ·   " /><Run Text="{Binding ArchitectureText, Mode=OneWay}" />
+            </TextBlock>
+
+            <!-- ===== Software health ===== -->
+            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10" Padding="22">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Score ring -->
+                    <Grid Grid.Column="0" Width="126" Height="126" Margin="0,0,26,0">
+                        <ui:ProgressRing Progress="{Binding HealthScore, Mode=OneWay}"
+                                         IsIndeterminate="False" Width="126" Height="126"
+                                         Foreground="{Binding HealthScore,
+                                                      Converter={StaticResource HealthBrush}}" />
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock FontSize="34" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{Binding HealthScore,
+                                                    Converter={StaticResource HealthBrush}}">
+                                <Run Text="{Binding HealthScore, Mode=OneWay}" /><Run Text="%" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding HealthBandText, Mode=OneWay}" FontSize="11"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{StaticResource MutedInkBrush}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="Software health" FontSize="19" FontWeight="SemiBold"
+                                   Foreground="{StaticResource InkBrush}" />
+                        <TextBlock Text="{Binding HealthSummary, Mode=OneWay}" FontSize="13"
+                                   Margin="0,2,0,10" Foreground="{StaticResource MutedInkBrush}" />
+
+                        <!-- Every deduction is shown, so the score is auditable rather
+                             than a number the app simply asserts. -->
+                        <ItemsControl ItemsSource="{Binding HealthFactors, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Points}"
+                                                   FontWeight="SemiBold" FontSize="12"
+                                                   HorizontalAlignment="Right" Margin="0,0,10,0"
+                                                   Foreground="#C0392B" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Label}"
+                                                   FontSize="12" FontWeight="SemiBold"
+                                                   Margin="0,0,8,0"
+                                                   Foreground="{StaticResource InkBrush}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Detail}"
+                                                   FontSize="11.5" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource MutedInkBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" MinWidth="150">
+                        <ui:Button Content="Update all" Appearance="Primary"
+                                   HorizontalAlignment="Stretch" Margin="0,0,0,8"
+                                   Command="{Binding UpdateAllCommand}" />
+                        <ui:Button Content="Scan now" HorizontalAlignment="Stretch"
+                                   Command="{Binding ScanCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ===== Priority breakdown ===== -->
+            <UniformGrid Columns="5" Margin="0,0,0,10" HorizontalAlignment="Stretch">
+                <Border Style="{StaticResource CardStyle}" Margin="3" Padding="13">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="CRITICAL" />
+                        <TextBlock Style="{StaticResource StatValue}" Foreground="#C02A2A"
+                                   Text="{Binding CriticalCount, Mode=OneWay}" />
+                        <TextBlock Text="security or years behind" FontSize="10.5" TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="3" Padding="13">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="HIGH" />
+                        <TextBlock Style="{StaticResource StatValue}" Foreground="#D16C10"
+                                   Text="{Binding HighCount, Mode=OneWay}" />
+                        <TextBlock Text="major versions behind" FontSize="10.5" TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="3" Padding="13">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="RECOMMENDED" />
+                        <TextBlock Style="{StaticResource StatValue}" Foreground="#B28A00"
+                                   Text="{Binding RecommendedCount, Mode=OneWay}" />
+                        <TextBlock Text="worth updating soon" FontSize="10.5" TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="3" Padding="13">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="OPTIONAL" />
+                        <TextBlock Style="{StaticResource StatValue}" Foreground="#5A7796"
+                                   Text="{Binding OptionalCount, Mode=OneWay}" />
+                        <TextBlock Text="recent releases" FontSize="10.5" TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="3" Padding="13">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="UP TO DATE" />
+                        <TextBlock Style="{StaticResource StatValue}" Foreground="#17844B"
+                                   Text="{Binding UpToDate, Mode=OneWay}" />
+                        <TextBlock Text="{Binding TotalApps, Mode=OneWay,
+                                          StringFormat='of {0} apps'}"
+                                   FontSize="10.5" TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- ===== Needs attention ===== -->
+            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,14">
+                <StackPanel>
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock Style="{StaticResource CardTitle}" Text="NEEDS YOUR ATTENTION"
+                                   Margin="0" />
+                        <TextBlock HorizontalAlignment="Right" FontSize="11"
+                                   Foreground="{StaticResource MutedInkBrush}">
+                            <Run Text="{Binding SecurityMissed, Mode=OneWay}" />
+                            <Run Text="security releases missed  ·  " />
+                            <Run Text="{Binding OverTwoYears, Mode=OneWay}" />
+                            <Run Text="over two years old" />
+                        </TextBlock>
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding NeedsAttention, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SubtleBrush}" CornerRadius="7"
+                                        Padding="12,9" Margin="0,3">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="112" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" CornerRadius="4" Padding="7,2"
+                                                VerticalAlignment="Center" Margin="0,0,12,0"
+                                                MinWidth="76"
+                                                Background="{Binding Priority,
+                                                             Converter={StaticResource PriorityBrush}}">
+                                            <TextBlock Text="{Binding PriorityText}" FontSize="10"
+                                                       FontWeight="SemiBold" Foreground="White"
+                                                       HorizontalAlignment="Center" />
+                                        </Border>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                       FontSize="13"
+                                                       Foreground="{StaticResource InkBrush}" />
+                                            <TextBlock Text="{Binding PriorityReason}" FontSize="11"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Foreground="{StaticResource MutedInkBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center"
+                                                    Margin="12,0">
+                                            <TextBlock FontSize="11.5" HorizontalAlignment="Right"
+                                                       Foreground="{StaticResource InkBrush}">
+                                                <Run Text="{Binding InstalledVersion, Mode=OneWay}" />
+                                                <Run Text="→" />
+                                                <Run Text="{Binding LatestVersion, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="3" Text="{Binding Age.Short}"
+                                                   FontSize="12" FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Right"
+                                                   Foreground="{Binding Status,
+                                                                Converter={StaticResource StatusBrush}}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="Nothing needs urgent attention. Run a scan to refresh."
+                               FontSize="12" Margin="0,10"
+                               Foreground="{StaticResource MutedInkBrush}"
+                               Visibility="{Binding NeedsAttention.Count,
+                                            Converter={StaticResource NullVis},
+                                            ConverterParameter=invert}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

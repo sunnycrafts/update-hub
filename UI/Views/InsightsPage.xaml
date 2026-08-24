@@ -1,0 +1,143 @@
+<UserControl x:Class="UpdateHub.UI.Views.InsightsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="Insights" FontSize="28" FontWeight="SemiBold" Margin="4,4,0,2"
+                       Foreground="{StaticResource InkBrush}" />
+            <TextBlock Text="What your software library actually looks like."
+                       FontSize="12" Margin="4,0,0,14"
+                       Foreground="{StaticResource MutedInkBrush}" />
+
+            <UniformGrid Columns="3" Margin="0,0,0,10">
+                <Border Style="{StaticResource CardStyle}" Margin="4">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="OLDEST INSTALLED VERSION" />
+                        <TextBlock Text="{Binding OldestApp.Name, Mode=OneWay, TargetNullValue='—'}"
+                                   FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{StaticResource InkBrush}" />
+                        <TextBlock FontSize="11.5" Margin="0,4,0,0"
+                                   Foreground="{StaticResource MutedInkBrush}">
+                            <Run Text="{Binding OldestApp.InstalledVersion, Mode=OneWay}" />
+                            <Run Text="·" />
+                            <Run Text="{Binding OldestApp.InstalledReleaseText, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding OldestApp.Age.Long, Mode=OneWay}"
+                                   FontSize="13" FontWeight="SemiBold" Margin="0,6,0,0"
+                                   Foreground="#C0392B" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}" Margin="4">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="LARGEST APPLICATION" />
+                        <TextBlock Text="{Binding LargestApp.Name, Mode=OneWay, TargetNullValue='—'}"
+                                   FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{StaticResource InkBrush}" />
+                        <TextBlock Text="{Binding LargestApp.SizeText, Mode=OneWay}"
+                                   FontSize="13" FontWeight="SemiBold" Margin="0,6,0,0"
+                                   Foreground="{StaticResource InkBrush}" />
+                        <TextBlock FontSize="11.5" Margin="0,4,0,0"
+                                   Foreground="{StaticResource MutedInkBrush}">
+                            <Run Text="Total library: " />
+                            <Run Text="{Binding TotalFootprint, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}" Margin="4">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="MOST RELEASES MISSED" />
+                        <TextBlock Text="{Binding MostReleasesMissed.Name, Mode=OneWay,
+                                          TargetNullValue='—'}"
+                                   FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{StaticResource InkBrush}" />
+                        <TextBlock FontSize="13" FontWeight="SemiBold" Margin="0,6,0,0"
+                                   Foreground="#C4551F">
+                            <Run Text="{Binding MostReleasesMissed.ReleasesMissed, Mode=OneWay}" />
+                            <Run Text="releases behind" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <UniformGrid Columns="3" Margin="0,0,0,10">
+                <Border Style="{StaticResource CardStyle}" Margin="4">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="NO UPDATE SOURCE" />
+                        <TextBlock Style="{StaticResource StatValue}"
+                                   Foreground="{StaticResource MutedInkBrush}"
+                                   Text="{Binding NoSourceCount, Mode=OneWay}" />
+                        <TextBlock Text="applications cannot be checked — usually OEM tools and drivers"
+                                   FontSize="10.5" TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="4">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="AVERAGE VERSION AGE" />
+                        <TextBlock Text="{Binding AverageAge, Mode=OneWay}"
+                                   FontSize="26" FontWeight="SemiBold"
+                                   Foreground="{StaticResource InkBrush}" />
+                        <TextBlock Text="across applications with a known release date"
+                                   FontSize="10.5" TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="4">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="MOST RECENTLY INSTALLED" />
+                        <TextBlock Text="{Binding NewestInstalled.Name, Mode=OneWay,
+                                          TargetNullValue='—'}"
+                                   FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{StaticResource InkBrush}" />
+                        <TextBlock Text="{Binding NewestInstalled.InstallDate, Mode=OneWay,
+                                          StringFormat='d MMMM yyyy'}"
+                                   FontSize="11.5" Margin="0,4,0,0"
+                                   Foreground="{StaticResource MutedInkBrush}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="BY CATEGORY" />
+                    <ItemsControl ItemsSource="{Binding CategoryBreakdown, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="80" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12.5"
+                                               FontWeight="SemiBold" VerticalAlignment="Center"
+                                               Foreground="{StaticResource InkBrush}" />
+                                    <ProgressBar Grid.Column="1" Height="7" Maximum="100"
+                                                 VerticalAlignment="Center" Margin="0,0,14,0"
+                                                 Value="{Binding Count, Mode=OneWay}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="12"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                                               Foreground="{StaticResource InkBrush}" />
+                                    <TextBlock Grid.Column="3" FontSize="11.5"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                                               Foreground="{StaticResource MutedInkBrush}">
+                                        <Run Text="{Binding Outdated, Mode=OneWay}" />
+                                        <Run Text="outdated" />
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="4" Text="{Binding SizeText}" FontSize="11.5"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                                               Foreground="{StaticResource MutedInkBrush}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
