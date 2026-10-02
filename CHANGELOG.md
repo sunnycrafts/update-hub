@@ -2,6 +2,51 @@
 
 All notable changes to UpdateHub. Versions follow semantic versioning.
 
+## [0.8.2] — 2026-08-26
+
+Reported as "issue with font in Settings." It wasn't a font — it was near-total text
+invisibility on that one page, caused by a leftover setting from before the app committed
+to its current design.
+
+### Fixed
+- **Settings.json still had `"Theme": "Dark"` from before the app switched to one fixed
+  bright design**, and that value was still live: applying it re-themes WPF-UI's *native*
+  control resources (checkbox, combo box, number box, password box — the exact controls
+  Settings is dense with) to dark, while every custom brush the rest of the app uses stays
+  hardcoded to the light palette. The result was most Settings-page text rendering as
+  near-white-on-white — confirmed by temporarily letting the screenshot tool read the real
+  persisted theme instead of its usual hardcoded "Light" override (which is precisely why
+  this had gone uncaught all session: every previous diagnostic screenshot silently forced
+  Light, masking the bug).
+- Three-layer fix, so this class of bug can't resurface through this path again:
+  `SettingsService` now migrates any non-"Light" persisted theme back to "Light" on load
+  (existing installs, including this machine's, self-heal on next launch — confirmed
+  against the real on-disk settings.json); the app's real startup path applies "Light"
+  unconditionally rather than trusting the stored value; and `ThemeService` no longer has
+  Dark/System branches to apply in the first place. The Theme picker was removed from
+  Settings entirely — offering a choice that only ever had one safe answer is what let a
+  stale value get set in the first place.
+- Confirmed via reflection that every control type on Settings (plain WPF `CheckBox`/
+  `ComboBox`/`ListBox` and WPF-UI's `NumberBox`/`PasswordBox`/`Button`) resolves to the
+  identical `Segoe UI` at the identical size under the theme — there was never an actual
+  font-family mismatch to fix, which is why chasing that framing first would have gone
+  nowhere.
+
+## [0.8.1] — 2026-08-25
+
+### Fixed
+- **The window's close button was indistinguishable from Minimize and Maximize at rest.**
+  WPF-UI's own `TitleBar` template only colours the close glyph on hover (white on a red
+  fill via `MouseOverButtonsForeground`/`MouseOverBackground`) — at rest all three caption
+  buttons render as plain ink-coloured symbols, which is standard Windows chrome but
+  didn't fit this app's brighter, higher-contrast look and made Close impossible to pick
+  out until the cursor was already on it. `TitleBarButton` exposes `ButtonsForeground`
+  per instance, so the close button alone is now retinted to the app's own Critical red
+  (#C02A2A) at rest, found via `Template.FindName("PART_CloseButton", ...)` in
+  `MainWindow.xaml.cs` — no WPF-UI template override, Minimize/Maximize and the built-in
+  hover behaviour untouched. Verified with a real screenshot crop of the rendered title
+  bar, not just that nothing threw.
+
 ## [0.8.0] — 2026-08-03
 
 ### Added

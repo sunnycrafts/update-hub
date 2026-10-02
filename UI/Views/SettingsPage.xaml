@@ -7,20 +7,6 @@
             <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold" Margin="4,4,0,14"
                        Foreground="{StaticResource InkBrush}" />
 
-            <!-- Appearance -->
-            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource CardTitle}" Text="APPEARANCE" />
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <TextBlock Text="Theme" Width="200" VerticalAlignment="Center" />
-                        <ComboBox x:Name="ThemeBox" Width="180" SelectionChanged="Theme_Changed">
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Follow system" Tag="System" />
-                        </ComboBox>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
 
             <!-- Scanning -->
             <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">

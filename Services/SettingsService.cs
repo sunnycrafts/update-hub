@@ -45,6 +45,25 @@ public sealed class SettingsService
             _log.Warn($"settings.json unreadable, using defaults: {ex.Message}");
             Current = new AppSettings();
         }
+
+        MigrateStaleTheme();
+    }
+
+    /// <summary>
+    /// The app briefly supported switching WPF-UI's native theme between Light/Dark/System
+    /// before settling on one hardcoded bright design with no dark counterpart. A "Dark"
+    /// or "System" value surviving from that period re-themes native controls (checkbox,
+    /// combo box, number box, password box) to dark while every custom brush stays
+    /// hardcoded light, rendering most Settings-page text as near-white-on-white. Existing
+    /// installs self-heal here rather than staying broken until someone notices.
+    /// </summary>
+    private void MigrateStaleTheme()
+    {
+        if (Current.Theme == "Light") return;
+        _log.Warn($"settings.json had Theme=\"{Current.Theme}\" from before the app " +
+                  "settled on one fixed theme; migrating to \"Light\".");
+        Current.Theme = "Light";
+        Save();
     }
 
     public void Save()

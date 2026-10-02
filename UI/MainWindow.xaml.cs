@@ -2,8 +2,12 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using UpdateHub.UI.ViewModels;
 using UpdateHub.UI.Views;
+// UseWindowsForms (for the tray icon elsewhere) puts System.Drawing.Color in scope
+// alongside System.Windows.Media.Color; be explicit here.
+using Color = System.Windows.Media.Color;
 
 namespace UpdateHub.UI;
 
@@ -33,6 +37,8 @@ public partial class MainWindow
             if (App.Services.Settings.Current.CheckOnStartup && _vm.Apps.Count == 0)
                 await _vm.ScanCommand.ExecuteAsync(null);
         };
+
+        Loaded += (_, _) => TintCloseButton();
     }
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
@@ -94,6 +100,32 @@ public partial class MainWindow
     }
 
     /// <summary>Minimal ICommand for key bindings that only need to run an action.</summary>
+    /// <summary>
+    /// Colours the close button's glyph at rest, not just on hover.
+    ///
+    /// WPF-UI's own TitleBar template only tints the close button on MouseOver (white
+    /// glyph on a red fill) — at rest it renders identically to Minimize and Maximize, a
+    /// plain ink-coloured symbol. That is standard Windows chrome, but it does not fit
+    /// this app's brighter, higher-contrast look, and it means Close cannot be told apart
+    /// from the other two caption buttons until the cursor is already on it. TitleBarButton
+    /// exposes ButtonsForeground per-button, so the close button alone can be retinted
+    /// without touching WPF-UI's template or affecting Minimize/Maximize; the built-in
+    /// hover behaviour (white on red) is untouched.
+    /// </summary>
+    private void TintCloseButton()
+    {
+        AppTitleBar.ApplyTemplate();
+        if (AppTitleBar.Template.FindName("PART_CloseButton", AppTitleBar)
+            is Wpf.Ui.Controls.TitleBarButton closeButton)
+        {
+            // Matches the app's own "Critical" priority red, so the close button reads as
+            // consistent with the rest of the palette rather than an arbitrary red.
+            var brush = new SolidColorBrush(Color.FromRgb(0xC0, 0x2A, 0x2A));
+            brush.Freeze();
+            closeButton.ButtonsForeground = brush;
+        }
+    }
+
     private sealed class RelayCommandShim : ICommand
     {
         private readonly Action _action;

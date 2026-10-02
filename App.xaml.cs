@@ -74,7 +74,15 @@ public partial class App : Application
             return;
         }
 
-        Services.Theme.Apply(Services.Settings.Current.Theme);
+        // The app has one committed visual design (bright silver, hardcoded in App.xaml's
+        // custom brushes) — there is no dark-mode counterpart for it. Applying anything
+        // but Light here re-themes WPF-UI's native control resources (checkbox, combo box,
+        // number box, password box — the controls Settings is dense with) to dark while
+        // every custom brush stays hardcoded light, making most text render as
+        // near-white-on-white. This bit a real user via a "Dark" value left over from
+        // before the redesign; ServiceSettings now migrates that away on load too, but
+        // this call is intentionally unconditional as a second line of defence.
+        Services.Theme.Apply("Light");
         new UI.MainWindow().Show();
     }
 

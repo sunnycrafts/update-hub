@@ -27,7 +27,6 @@ public partial class SettingsPage : UserControl
         if (Vm is null || S is null) return;
         _loading = true;
 
-        Select(ThemeBox, S.Theme);
         HideSystem.IsChecked = S.HideSystemComponents;
         IncludeStore.IsChecked = S.IncludeMsStore;
         IncludePortable.IsChecked = S.IncludePortable;
@@ -67,7 +66,7 @@ public partial class SettingsPage : UserControl
             $"({Vm.Services.Catalog.PluginEntryCount} from plugins), " +
             $"{Vm.Services.Providers.Vendor.RuleCount} vendor rules.";
         AboutText.Text =
-            $"UpdateHub 0.8.0 — {Sources.ArchitectureHelper.Display}\n" +
+            $"UpdateHub 0.8.2 — {Sources.ArchitectureHelper.Display}\n" +
             $"Data folder: {App.DataRoot}\n" +
             $"Database: {Vm.Services.Db.Path} ({Vm.Services.Db.SizeBytes / 1024:N0} KB)";
     }
@@ -91,13 +90,6 @@ public partial class SettingsPage : UserControl
     private static string TagOf(ComboBox box) =>
         (box.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "";
 
-    private void Theme_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || Vm is null || S is null) return;
-        S.Theme = TagOf(ThemeBox);
-        Vm.Services.Theme.Apply(S.Theme);
-        Save();
-    }
 
     private void Token_Changed(object sender, RoutedEventArgs e)
     {
