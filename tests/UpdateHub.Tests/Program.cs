@@ -169,5 +169,31 @@ Console.WriteLine("== launch options (admin / compatibility) and shortcut keys =
     finally { if (lnk is not null && System.IO.File.Exists(lnk)) System.IO.File.Delete(lnk); }
     Chk("hotkey cleaned up", ShortcutHotkey.Current(exe).ToUpperInvariant().Contains("F9"), false);
 }
+Console.WriteLine("== drivers: real local scan, vendor pages, privacy ==");
+{
+    var machine = DriverScanner.ReadMachine();
+    Chk("machine manufacturer read", machine.Manufacturer.Length > 0, true);
+    Chk("machine cpu read", machine.Cpu.Length > 0, true);
+    Chk("machine ram read", machine.RamGb > 1, true);
+    var drivers = DriverScanner.ReadDrivers();
+    Chk("drivers found on this PC", drivers.Count > 0, true);
+    Chk("every driver has a version", drivers.All(d => d.Version.Length > 0), true);
+    Chk("no inbox Microsoft drivers listed (bar basic display)",
+        drivers.All(d => !d.Manufacturer.StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase)
+                         || d.Device.Contains("Basic Display", StringComparison.OrdinalIgnoreCase)), true);
+    Chk("vendor link: nvidia", DriverScanner.VendorPage("NVIDIA", "GeForce", "Graphics").Contains("nvidia.com"), true);
+    Chk("vendor link: intel", DriverScanner.VendorPage("Intel Corporation", "Wi-Fi", "Network").Contains("intel.com"), true);
+    Chk("vendor link: unknown falls back to search", DriverScanner.VendorPage("Acme", "Widget", "").StartsWith("https://duckduckgo.com/"), true);
+    Chk("all vendor links are https", drivers.All(d => d.VendorUrl.StartsWith("https://")), true);
+    // Privacy: a link may carry the maker and device name, never a serial or machine name.
+    Chk("fallback link contains no machine name",
+        !DriverScanner.VendorPage("Acme", "Widget", "").Contains(Environment.MachineName, StringComparison.OrdinalIgnoreCase), true);
+    var flagged = new List<DriverInfo> { new() { Device = "Test GPU", Date = new DateTime(2020, 1, 1) } };
+    DriverScanner.Flag(flagged, new List<PendingDriver> { new() { Model = "Test GPU", Date = new DateTime(2024, 1, 1) } });
+    Chk("newer Windows Update driver flagged", flagged[0].NewerOnWindowsUpdate, true);
+    var notFlagged = new List<DriverInfo> { new() { Device = "Test GPU", Date = new DateTime(2025, 1, 1) } };
+    DriverScanner.Flag(notFlagged, new List<PendingDriver> { new() { Model = "Test GPU", Date = new DateTime(2024, 1, 1) } });
+    Chk("older Windows Update driver not flagged", notFlagged[0].NewerOnWindowsUpdate, false);
+}
 Console.WriteLine($"\n{pass} passed, {fail} failed");
 return fail==0?0:1;

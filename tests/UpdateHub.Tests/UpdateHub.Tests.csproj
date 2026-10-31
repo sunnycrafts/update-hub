@@ -23,6 +23,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="Program.cs" />
 
     <!-- Only the files whose logic is under test, so this stays free of WPF and Windows
@@ -43,6 +47,7 @@
     <Compile Include="..\..\Core\PriorityCalculator.cs" />
     <Compile Include="..\..\Core\SearchQuery.cs" />
     <Compile Include="..\..\Core\LaunchOptions.cs" />
+    <Compile Include="..\..\Core\DriverScanner.cs" />
 
     <!-- ElevatedUpdateRunner's pure status-mapping logic (InterpretStatus /
          DescribeOutcome) is worth testing directly against the JSON shape the embedded

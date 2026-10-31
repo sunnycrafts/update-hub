@@ -159,6 +159,7 @@ public partial class App : Application
                 ("HistoryPage", () => new UI.Views.HistoryPage()),
                 ("IgnoredPage", () => new UI.Views.IgnoredPage()),
                 ("SettingsPage", () => new UI.Views.SettingsPage()),
+                ("DriversPage", () => new UI.Views.DriversPage()),
                 ("AppListView", () => new UI.Views.AppListView()),
             })
             {

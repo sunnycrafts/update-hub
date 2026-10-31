@@ -1,0 +1,88 @@
+<UserControl x:Class="UpdateHub.UI.Views.DriversPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="980" HorizontalAlignment="Left">
+            <TextBlock Text="Drivers" FontSize="28" FontWeight="SemiBold" Margin="4,4,0,6"
+                       Foreground="{StaticResource InkBrush}" />
+            <TextBlock TextWrapping="Wrap" Margin="4,0,4,12" FontSize="12"
+                       Foreground="{StaticResource MutedInkBrush}"
+                       Text="Reads this PC's hardware and drivers, then asks Windows Update whether newer drivers exist. Your hardware details stay on this PC: nothing is uploaded, serial numbers are never read, and the only network contact is Windows Update itself, exactly as in Windows Settings." />
+
+            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="THIS PC" />
+                    <TextBlock x:Name="MachineText" FontSize="12.5" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Foreground="{StaticResource InkBrush}"
+                               Text="Press &quot;Scan this PC&quot; to read your hardware and drivers." />
+                    <WrapPanel Margin="0,12,0,0">
+                        <ui:Button x:Name="ScanButton" Content="Scan this PC" Appearance="Primary"
+                                   Click="Scan_Click" Margin="0,0,8,6"
+                                   ToolTip="Read the hardware and driver list from this PC and ask Windows Update for newer drivers. Takes up to a minute." />
+                        <ui:Button Content="Open Windows optional updates" Click="OptionalUpdates_Click"
+                                   Margin="0,0,8,6"
+                                   ToolTip="Open Windows Settings where driver updates can be installed." />
+                        <ui:Button Content="PC maker's support page" Click="OemPage_Click" Margin="0,0,8,6"
+                                   ToolTip="Open the official support page for your PC's maker. Laptop-specific drivers and BIOS updates are published there." />
+                        <ui:Button Content="Install Intel Driver &amp; Support Assistant" Click="InstallIntel_Click"
+                                   x:Name="IntelButton" Margin="0,0,8,6" Visibility="Collapsed"
+                                   ToolTip="Silently installs Intel's official tool, which finds the latest Intel drivers for you, using winget." />
+                    </WrapPanel>
+                    <TextBlock x:Name="StatusText" FontSize="11.5" Opacity="0.75" TextWrapping="Wrap"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="DRIVERS ON THIS PC" />
+                    <TextBlock FontSize="11" Opacity="0.7" TextWrapping="Wrap" Margin="0,4,0,8"
+                               Text="Old is not automatically bad: a driver that works is fine. Double-click a row to open the maker's download page. Windows Update only covers drivers Microsoft distributes, so newer graphics drivers must be checked on the maker's site." />
+                    <ListView x:Name="DriverList" MaxHeight="520" BorderThickness="0"
+                              Background="Transparent" MouseDoubleClick="Driver_DoubleClick"
+                              ToolTip="Double-click to open the maker's official download page.">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Type" Width="110" DisplayMemberBinding="{Binding DeviceClass}" />
+                                <GridViewColumn Header="Device" Width="300" DisplayMemberBinding="{Binding Device}" />
+                                <GridViewColumn Header="Maker" Width="140" DisplayMemberBinding="{Binding Manufacturer}" />
+                                <GridViewColumn Header="Version" Width="120" DisplayMemberBinding="{Binding Version}" />
+                                <GridViewColumn Header="Driver date" Width="100" DisplayMemberBinding="{Binding DateText}" />
+                                <GridViewColumn Header="Status" Width="170">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding AgeText}" FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#2E8B57" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Level}" Value="1">
+                                                                <Setter Property="Foreground" Value="#B7791F" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Level}" Value="2">
+                                                                <Setter Property="Foreground" Value="#C02A2A" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,16">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="NEWER DRIVERS FROM WINDOWS UPDATE" />
+                    <TextBlock x:Name="PendingText" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Foreground="{StaticResource InkBrush}" Text="Not checked yet." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

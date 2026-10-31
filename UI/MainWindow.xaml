@@ -53,6 +53,9 @@
                                      Style="{StaticResource NavItemStyle}" Checked="Nav_Checked" />
                         <RadioButton x:Name="NavApps" GroupName="nav" Tag="apps"
                                      Style="{StaticResource NavItemStyle}" Checked="Nav_Checked" />
+                        <RadioButton Content="Drivers" GroupName="nav" Tag="drivers"
+                                     Style="{StaticResource NavItemStyle}" Checked="Nav_Checked"
+                                     ToolTip="Check this PC's drivers and look for newer ones." />
                         <RadioButton Content="Insights" GroupName="nav" Tag="insights"
                                      Style="{StaticResource NavItemStyle}" Checked="Nav_Checked" />
                         <RadioButton Content="History" GroupName="nav" Tag="history"

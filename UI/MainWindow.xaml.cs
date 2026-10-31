@@ -87,6 +87,7 @@ public partial class MainWindow
             {
                 "dashboard" => new DashboardPage(),
                 "insights" => new InsightsPage(),
+                "drivers" => new DriversPage(),
                 "apps" => new InstalledAppsPage(),
                 "updates" => new UpdatesPage(),
                 "history" => new HistoryPage(),

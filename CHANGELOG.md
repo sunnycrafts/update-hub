@@ -2,6 +2,30 @@
 
 All notable changes to UpdateHub. Versions follow semantic versioning.
 
+## [0.10.0] — 2026-10-31
+
+### Added
+- **Drivers page.** Reads this PC's hardware (maker, model, processor, graphics, memory,
+  Windows, BIOS) and its drivers (graphics, network, sound, Bluetooth, chipset, storage,
+  firmware, camera), shows each driver's version, date and age, and asks Windows Update
+  whether newer drivers exist for this PC. Drivers with a newer version available, or very
+  old ones, are highlighted. Double-click a driver to open its maker's official download
+  page; buttons open Windows optional updates and the PC maker's support page; on Intel
+  machines it can silently install Intel Driver & Support Assistant through winget.
+- **Privacy by design.** Everything is read locally with WMI. Nothing about the hardware is
+  uploaded, serial numbers and hardware IDs are never read, links contain only the maker
+  and device name, and the only network contact is Windows Update itself.
+
+### Notes
+- Windows Update only covers drivers Microsoft distributes. Newer graphics drivers
+  (NVIDIA, AMD) and BIOS updates must be checked on the maker's page, which the app links to.
+  Drivers are not installed automatically: a bad driver can stop a PC booting, so the app
+  finds and compares but leaves installing to Windows Update or the maker's own tool.
+
+### Tests
+- 111 assertions (13 new), including a real local scan and the privacy rule that links never
+  contain the machine name.
+
 ## [0.9.0] — 2026-10-31
 
 ### Added
