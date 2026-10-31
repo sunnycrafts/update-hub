@@ -518,7 +518,10 @@ public sealed partial class MainViewModel : ObservableObject
 
             int ok = outcomes.Count(r => r.Value == UpdateOutcome.Success);
             int failed = outcomes.Count(r => r.Value is UpdateOutcome.Failed or UpdateOutcome.RequiresElevation);
-            StatusText = $"Updated {ok} of {targets.Count}" + (failed > 0 ? $", {failed} failed" : "");
+            int notViaWinget = outcomes.Count(r => r.Value == UpdateOutcome.NotInWinget);
+            StatusText = $"Updated {ok} of {targets.Count}" +
+                         (failed > 0 ? $", {failed} failed" : "") +
+                         (notViaWinget > 0 ? $", {notViaWinget} not available through winget yet (see History)" : "");
             RaiseStats();
 
             if (_s.Settings.Current.NotifyOnUpdates)

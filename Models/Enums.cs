@@ -81,6 +81,8 @@ public enum UpdateOutcome
     Cancelled = 4,
     NoUpdateNeeded = 5,
     RequiresElevation = 6,
+    /// <summary>winget cannot do this one (catalogue behind, or the app updates itself): not a real failure.</summary>
+    NotInWinget = 7,
 }
 
 /// <summary>

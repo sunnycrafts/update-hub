@@ -282,6 +282,8 @@ public sealed class ElevatedUpdateRunner
             if (message.Contains("exit=1618", StringComparison.Ordinal)) return UpdateOutcome.Failed;
             if (detail.Contains("No applicable update", StringComparison.OrdinalIgnoreCase))
                 return UpdateOutcome.NoUpdateNeeded;
+            if (WingetLimits.Recognise(detail + " " + message) is not null)
+                return UpdateOutcome.NotInWinget;
             return UpdateOutcome.Failed;
         }
         return UpdateOutcome.Success;
@@ -291,6 +293,7 @@ public sealed class ElevatedUpdateRunner
     {
         UpdateOutcome.Success => "Updated (elevated background).",
         UpdateOutcome.NoUpdateNeeded => "No applicable update was found.",
+        UpdateOutcome.NotInWinget => WingetLimits.Recognise(detail + " " + message) ?? "winget cannot do this update.",
         _ => string.IsNullOrWhiteSpace(detail) ? message : $"{message}: {Truncate(detail, 160)}",
     };
 

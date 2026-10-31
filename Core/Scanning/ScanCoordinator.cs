@@ -367,6 +367,19 @@ public sealed class ScanCoordinator
             candidates.Count > 0)
             return candidates[0];
 
+        // Start Menu shortcuts are often named a little differently from the registry entry
+        // ("Visual Studio Code" vs "Microsoft Visual Studio Code"). When one normalised name
+        // contains the other and is long enough not to be a coincidence, they are the same
+        // product; otherwise the shortcut would be listed as a separate duplicate.
+        if (item.Sources.HasFlag(DetectionSource.StartMenu) && item.NormalizedName.Length >= 8)
+        {
+            var near = all.FirstOrDefault(a =>
+                a.Key != item.Key && a.NormalizedName.Length >= 8 &&
+                (a.NormalizedName.Contains(item.NormalizedName, StringComparison.OrdinalIgnoreCase) ||
+                 item.NormalizedName.Contains(a.NormalizedName, StringComparison.OrdinalIgnoreCase)));
+            if (near is not null) return near;
+        }
+
         // A portable executable sitting inside a registered app's install folder is that
         // app's own binary, not a separate product.
         if (item.ExePath is not null)

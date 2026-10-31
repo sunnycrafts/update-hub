@@ -23,9 +23,13 @@ public partial class AppListView : UserControl
             await Vm.UpdateManyAsync(new[] { app });
     }
 
+    private static bool CanUpdateAutomatically(InstalledApp a) =>
+        a.UpdateMethod is UpdateMethod.Winget or UpdateMethod.Chocolatey or UpdateMethod.Scoop
+            or UpdateMethod.MsStore or UpdateMethod.Installer;
+
     private void Grid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var n = Selection.Count(a => a.UpdateAvailable && !a.IsIgnored);
+        var n = Selection.Count(a => a.UpdateAvailable && !a.IsIgnored && CanUpdateAutomatically(a));
         UpdateSelectedButton.Content = $"Update selected ({n})";
         UpdateSelectedButton.IsEnabled = n > 0;
     }
@@ -42,9 +46,20 @@ public partial class AppListView : UserControl
     private async void Update_Click(object sender, RoutedEventArgs e)
     {
         if (Vm is null) return;
-        var targets = Selection.Where(a => a.UpdateAvailable && !a.IsIgnored).ToList();
-        if (targets.Count == 0) return;
+        var wanted = Selection.Where(a => a.UpdateAvailable && !a.IsIgnored).ToList();
+        var targets = wanted.Where(CanUpdateAutomatically).ToList();
+        if (targets.Count == 0)
+        {
+            if (wanted.Count > 0)
+                MessageBox.Show(
+                    "None of the selected programs can be updated automatically. Use " +
+                    "Check manually in the detail pane to find their download pages.",
+                    "Update selected", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
         await Vm.UpdateManyAsync(targets);
+        if (wanted.Count > targets.Count)
+            Vm.StatusText += $" ({wanted.Count - targets.Count} selected program(s) need a manual update)";
     }
 
     private void Homepage_Click(object sender, RoutedEventArgs e)

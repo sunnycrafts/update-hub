@@ -195,6 +195,29 @@ Console.WriteLine("== drivers: real local scan, vendor pages, privacy ==");
     DriverScanner.Flag(notFlagged, new List<PendingDriver> { new() { Model = "Test GPU", Date = new DateTime(2024, 1, 1) } });
     Chk("older Windows Update driver not flagged", notFlagged[0].NewerOnWindowsUpdate, false);
 }
+Console.WriteLine("== winget limits are not failures (messages taken from a real batch log) ==");
+{
+    var noNewer = "No available upgrade found.\nNo newer package versions are available from the configured sources.";
+    Chk("catalogue behind -> NotInWinget", ElevatedUpdateRunner.InterpretStatus("failed", "exit=-1978335189", noNewer), UpdateOutcome.NotInWinget);
+    Chk("different installer technology -> NotInWinget",
+        ElevatedUpdateRunner.InterpretStatus("failed", "exit=-1978335090", "A newer version was found, but the install technology is different from the current version installed."), UpdateOutcome.NotInWinget);
+    Chk("publisher updater only -> NotInWinget",
+        ElevatedUpdateRunner.InterpretStatus("failed", "exit=-1978334956", "The package cannot be upgraded using WinGet. Please use the method provided by the publisher"), UpdateOutcome.NotInWinget);
+    Chk("winget does not manage this install -> NotInWinget",
+        ElevatedUpdateRunner.InterpretStatus("failed", "exit=-1978335212", "No installed package found matching input criteria."), UpdateOutcome.NotInWinget);
+    Chk("genuine failure stays Failed", ElevatedUpdateRunner.InterpretStatus("failed", "exit=1603", "Installer failed with exit code 1603"), UpdateOutcome.Failed);
+    Chk("success stays Success", ElevatedUpdateRunner.InterpretStatus("success", "exit=0", "ok"), UpdateOutcome.Success);
+    Chk("friendly message mentions Check manually",
+        ElevatedUpdateRunner.DescribeOutcome(UpdateOutcome.NotInWinget, "exit=-1978335189", noNewer).Contains("Check manually"), true);
+    Chk("edge message says installer type",
+        WingetLimits.Recognise("install technology is different")!.Contains("installer type"), true);
+    Chk("unrelated text not recognised", WingetLimits.Recognise("Installer failed with exit code 1603"), null);
+    var app = new InstalledApp { Name = "X", UpdateMethod = UpdateMethod.Winget, UpdateAvailable = true };
+    WingetLimits.MarkNotAutomatable(app);
+    Chk("marked manual so Update all stops retrying", app.UpdateMethod, UpdateMethod.Manual);
+    Chk("still flagged as behind", app.UpdateAvailable, true);
+}
+
 Console.WriteLine("== driver installer: output mapping and a real dry run of the script ==");
 {
     var lines = new[]

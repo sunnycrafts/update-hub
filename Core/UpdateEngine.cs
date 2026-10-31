@@ -64,6 +64,7 @@ public sealed class UpdateEngine
             _log.Info($"Update end: {app.Name} -> {outcome}: {message}");
 
             if (outcome == UpdateOutcome.Success) MarkSuccess(app);
+            else if (outcome == UpdateOutcome.NotInWinget) WingetLimits.MarkNotAutomatable(app);
 
             Report(message, outcome);
             return outcome;
@@ -112,6 +113,7 @@ public sealed class UpdateEngine
         _repo.FinishUpdate(recordId, outcome, message);
         _log.Info($"Elevated update end: {app.Name} -> {outcome}: {message}");
         if (outcome == UpdateOutcome.Success) MarkSuccess(app);
+        else if (outcome == UpdateOutcome.NotInWinget) WingetLimits.MarkNotAutomatable(app);
     }
 
     /// <summary>
@@ -235,7 +237,6 @@ public sealed class UpdateEngine
         var known = code switch
         {
             0x8A150011 => "No applicable update was found for this package.",
-            0x8A15002B => "No applicable installer is available for this system's architecture.",
             0x8A150109 => "The package is pinned and was skipped.",
             0x8A150056 => "This package must be updated by its own updater.",
             _ => null,
@@ -247,8 +248,12 @@ public sealed class UpdateEngine
             return (UpdateOutcome.RequiresElevation,
                 "This update needs administrator rights.");
 
-        if (text.Contains("No available upgrade", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("No installed package", StringComparison.OrdinalIgnoreCase))
+        if (WingetLimits.Recognise(text) is { } limit)
+            return (UpdateOutcome.NotInWinget, limit);
+        if (code == 0x8A15002B)
+            return (UpdateOutcome.NotInWinget, WingetLimits.Recognise("0x8A15002B")!);
+
+        if (text.Contains("No installed package", StringComparison.OrdinalIgnoreCase))
             return (UpdateOutcome.NoUpdateNeeded, "winget reports no upgrade is available.");
 
         var detail = LastMeaningfulLine(text);

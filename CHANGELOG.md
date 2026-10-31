@@ -2,6 +2,34 @@
 
 All notable changes to UpdateHub. Versions follow semantic versioning.
 
+## [0.10.2] — 2026-10-31
+
+Reported as "updates are failing". Ten updates in the batch had actually installed; the rest
+were mislabelled.
+
+### Fixed
+- **winget limits are no longer shown as failures.** A real batch log showed apps reported as
+  "Failed" when winget itself had said "No newer package versions are available" (its
+  catalogue lags the publisher: it lists Chrome 156.0.8078.48 while 156.0.8078.74 is
+  installed), "the install technology is different" (Edge), "cannot be upgraded using WinGet"
+  (Android Studio), or "No installed package found" (an ID that does not match the install).
+  These now get their own result, "Not via winget", with a plain explanation and a pointer to
+  Check manually. Genuine installer failures still show as failures.
+- Apps that hit one of these limits are no longer offered to "Update all" again (they would
+  fail identically every time); they stay flagged as behind.
+- A wrong message for winget code 0x8A15002B ("no applicable installer for this
+  architecture") was corrected: it means no newer applicable version exists.
+- The summary now says how many were "not available through winget yet" instead of lumping
+  them in with failures.
+- **Update selected skips programs that cannot be updated automatically** (for example
+  portable or Start Menu-only entries) and says so, instead of trying and failing.
+- **Duplicate rows from the Start Menu scan.** "Visual Studio Code" (a shortcut) is now
+  merged with "Microsoft Visual Studio Code" (the install) when one name contains the other,
+  instead of appearing as a second program with an unreliable file version.
+
+### Tests
+- 133 assertions: the classification uses the exact messages from the failing batch.
+
 ## [0.10.1] — 2026-10-31
 
 ### Added

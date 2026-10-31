@@ -367,6 +367,7 @@ public sealed class UpdateRecord
         UpdateOutcome.Cancelled => "Cancelled",
         UpdateOutcome.NoUpdateNeeded => "No update needed",
         UpdateOutcome.RequiresElevation => "Needs admin",
+        UpdateOutcome.NotInWinget => "Not via winget",
         UpdateOutcome.Running => "Running",
         _ => "Pending",
     };
