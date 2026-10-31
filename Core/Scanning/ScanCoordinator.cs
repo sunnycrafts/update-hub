@@ -40,6 +40,7 @@ public sealed class ScanCoordinator
         if (s.IncludePortable) tasks.Add(("portable", Run(new PortableScanner(), ct)));
         if (s.IncludeChocolatey) tasks.Add(("choco", Run(new ChocolateyScanner(), ct)));
         if (s.IncludeScoop) tasks.Add(("scoop", Run(new ScoopScanner(), ct)));
+        tasks.Add(("startmenu", Run(new StartMenuScanner(), ct)));
         if (s.CustomFolders.Count > 0)
             tasks.Add(("custom", Run(new PortableScanner(s.CustomFolders), ct)));
 
@@ -167,7 +168,7 @@ public sealed class ScanCoordinator
         }
 
         // ---- Package managers and portables ------------------------------
-        foreach (var label in new[] { "choco", "scoop", "portable", "custom" })
+        foreach (var label in new[] { "choco", "scoop", "portable", "custom", "startmenu" })
         {
             if (!bySource.TryGetValue(label, out var list)) continue;
             foreach (var item in list)
@@ -354,6 +355,13 @@ public sealed class ScanCoordinator
         Dictionary<string, List<InstalledApp>> byNormalized,
         List<InstalledApp> all)
     {
+        if (item.ExePath is not null)
+        {
+            var exact = all.FirstOrDefault(a => a.Key != item.Key &&
+                string.Equals(a.ExePath, item.ExePath, StringComparison.OrdinalIgnoreCase));
+            if (exact is not null) return exact;
+        }
+
         if (item.NormalizedName.Length > 0 &&
             byNormalized.TryGetValue(item.NormalizedName, out var candidates) &&
             candidates.Count > 0)

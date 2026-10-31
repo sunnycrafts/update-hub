@@ -3,3 +3,5 @@ obj/
 publish/
 *.user
 DESIGN-CONCEPT.md
+installer-output/
+COMPARISON.md

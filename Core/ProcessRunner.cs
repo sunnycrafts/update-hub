@@ -123,6 +123,10 @@ public static class ProcessRunner
     /// always resolve for a redirected-stdout child process, so we fall back to walking the
     /// package folders and picking the newest build.
     /// </summary>
+    /// <summary>Last non-empty line of tool output, for one-line status messages.</summary>
+    public static string LastLine(string text) =>
+        text.Split((char)10).Select(l => l.Trim()).LastOrDefault(l => l.Length > 3) ?? "";
+
     public static string? FindWinget()
     {
         if (_wingetProbed) return _wingetPath;

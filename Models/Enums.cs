@@ -12,6 +12,7 @@ public enum DetectionSource
     CustomFolder = 1 << 4,
     Chocolatey = 1 << 5,
     Scoop = 1 << 6,
+    StartMenu = 1 << 7,
 }
 
 /// <summary>How trustworthy a release date is. Drives the "approx" markers in the UI.</summary>

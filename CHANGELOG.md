@@ -2,6 +2,49 @@
 
 All notable changes to UpdateHub. Versions follow semantic versioning.
 
+## [0.9.0] — 2026-10-31
+
+### Added
+- **Start Menu scan.** UpdateHub now reads the all-users and per-user Start Menu shortcuts
+  and compares them with the installed list. Each program is marked "In the Start Menu",
+  "Not in the Start Menu" or "Start Menu only (no install record)", which finds portable
+  and hand-copied programs that have no uninstall entry. New search filter:
+  `startmenu:only`, `startmenu:yes`, `startmenu:no`.
+- **Microsoft Store updates.** Store apps that winget reports an update for are now
+  updated silently through winget's Store source, and are included in "Update all".
+- **"No update source" explanation** in the detail pane for programs with no known latest
+  version: a plain-English reason and a "Check manually" button that opens the publisher's
+  page or a web search.
+- **Backup and restore** (Settings): save the winget-managed program list to a file, and
+  silently reinstall everything from a backup on a new or reset PC.
+- **Launch options** (right-click a program > "Launch options…"): run it as administrator
+  every time, run it in a Windows compatibility mode (95 through 8), disable fullscreen
+  optimizations, override high-DPI scaling, 256 colours, 640 x 480, and open it right now
+  normally or as administrator. Stored in the same registry place as the Windows
+  Compatibility tab, so it applies from any shortcut and needs no admin rights to set.
+- **Shortcut key** for any program: a global key such as CTRL+ALT+F, saved on a Start Menu
+  shortcut (created if the program has none) so Windows handles it even when UpdateHub is
+  closed. At least two modifier keys are required so ordinary typing can never be hijacked.
+- MIT `LICENSE`.
+
+### Changed
+- **The GitHub token is now stored encrypted** (Windows DPAPI, current user only) instead of
+  in plain text. A plain-text token from an older version is migrated automatically on first
+  launch.
+
+### Tests
+- 98 assertions (32 new): Start Menu search, no-source reason, manual-check link, launch
+  option parsing, shortcut-key validation, and real registry and Start Menu shortcut round
+  trips that clean up after themselves.
+
+## [0.8.3] — 2026-10-28
+
+### Changed
+- The window title and title bar now show the version ("UpdateHub 0.8.3") at startup.
+- The version shown in Settings > About now comes from the project version
+  (`App.VersionText`) instead of a hand-typed string, so it can no longer drift.
+- Every control on the Settings page now has a hover tooltip.
+
 ## [0.8.2] — 2026-08-26
 
 Reported as "issue with font in Settings." It wasn't a font — it was near-total text

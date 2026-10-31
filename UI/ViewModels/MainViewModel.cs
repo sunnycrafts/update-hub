@@ -441,7 +441,8 @@ public sealed partial class MainViewModel : ObservableObject
     {
         var targets = Apps.Where(a => a.UpdateAvailable && !a.IsIgnored
                                    && a.UpdateMethod is UpdateMethod.Winget
-                                      or UpdateMethod.Chocolatey or UpdateMethod.Scoop)
+                                      or UpdateMethod.Chocolatey or UpdateMethod.Scoop
+                                      or UpdateMethod.MsStore)
                           .ToList();
         if (targets.Count == 0)
         {

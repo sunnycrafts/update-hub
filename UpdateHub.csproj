@@ -14,7 +14,7 @@
     <RootNamespace>UpdateHub</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\UpdateHub.ico</ApplicationIcon>
-    <Version>0.8.2</Version>
+    <Version>0.9.0</Version>
     <Company>UpdateHub</Company>
     <Product>UpdateHub</Product>
     <Platforms>x64</Platforms>
@@ -40,6 +40,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
     <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

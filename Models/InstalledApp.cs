@@ -154,6 +154,52 @@ public sealed class InstalledApp
         }
     }
 
+    /// <summary>Whether a Start Menu shortcut points at this program.</summary>
+    [JsonIgnore]
+    public string StartMenuText =>
+        !Sources.HasFlag(DetectionSource.StartMenu) ? "Not in the Start Menu"
+        : Sources == DetectionSource.StartMenu ? "Start Menu only (no install record)"
+        : "In the Start Menu";
+
+    /// <summary>
+    /// Plain-English explanation for apps whose latest version could not be found, so a
+    /// blank "Latest" column reads as a known limitation rather than a bug. Null when a
+    /// latest version is known.
+    /// </summary>
+    [JsonIgnore]
+    public string? NoSourceReason
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(LatestVersion)) return null;
+            if (IsIgnored) return null;
+            if (Sources.HasFlag(DetectionSource.MsStore))
+                return "This is a Microsoft Store app and winget's Store source did not list a newer version. " +
+                       "The Store updates it itself.";
+            if (Sources == DetectionSource.Portable || Sources == DetectionSource.CustomFolder)
+                return "This is a portable app with no install record, so UpdateHub cannot tell which " +
+                       "project or package it belongs to.";
+            return "UpdateHub found no winget package, GitHub project or vendor rule for this program, " +
+                   "so there is nothing to compare against. You can add a rule in Settings > Plugins and catalog.";
+        }
+    }
+
+    /// <summary>
+    /// Where to look by hand: the publisher's own page if known, otherwise a web search
+    /// for the program's download page. Always an https URL.
+    /// </summary>
+    [JsonIgnore]
+    public string ManualCheckUrl
+    {
+        get
+        {
+            foreach (var u in new[] { DownloadPageUrl, Homepage })
+                if (!string.IsNullOrWhiteSpace(u) && u.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    return u;
+            return "https://duckduckgo.com/?q=" + Uri.EscapeDataString($"{Name} {Publisher} download latest version");
+        }
+    }
+
     [JsonIgnore]
     public bool CanWingetUpdate =>
         !string.IsNullOrEmpty(WingetId) && UpdateMethod == UpdateMethod.Winget;

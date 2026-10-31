@@ -12,15 +12,15 @@
             <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="WHAT TO SCAN" />
-                    <CheckBox x:Name="HideSystem" Margin="0,6,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="HideSystem" ToolTip="Hides drivers, runtimes and Windows components so the list shows only programs you chose to install." Margin="0,6,0,0" Click="Setting_Changed"
                               Content="Hide drivers, redistributables and OS components" />
-                    <CheckBox x:Name="IncludeStore" Margin="0,4,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="IncludeStore" ToolTip="Also lists Microsoft Store apps. They can be checked here but are updated only through the Store." Margin="0,4,0,0" Click="Setting_Changed"
                               Content="Include Microsoft Store apps" />
-                    <CheckBox x:Name="IncludePortable" Margin="0,4,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="IncludePortable" ToolTip="Looks in common folders for apps that have no installer, such as .exe files you unzipped." Margin="0,4,0,0" Click="Setting_Changed"
                               Content="Include portable apps found in common folders" />
-                    <CheckBox x:Name="IncludeChoco" Margin="0,4,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="IncludeChoco" ToolTip="Also lists programs installed with Chocolatey, if it is installed." Margin="0,4,0,0" Click="Setting_Changed"
                               Content="Include Chocolatey packages" />
-                    <CheckBox x:Name="IncludeScoop" Margin="0,4,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="IncludeScoop" ToolTip="Also lists programs installed with Scoop, if it is installed." Margin="0,4,0,0" Click="Setting_Changed"
                               Content="Include Scoop packages" />
 
                     <TextBlock Text="Extra folders to scan for portable apps"
@@ -36,8 +36,8 @@
                                  Background="Transparent" />
                     </Grid>
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                        <ui:Button Content="Add folder…" Click="AddFolder_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="Remove selected" Click="RemoveFolder_Click" />
+                        <ui:Button Content="Add folder…" Click="AddFolder_Click" ToolTip="Pick another folder to search for portable apps." Margin="0,0,8,0" />
+                        <ui:Button Content="Remove selected" Click="RemoveFolder_Click" ToolTip="Stop scanning the selected folder." />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -56,15 +56,15 @@
 
                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                         <TextBlock Text="GitHub token (optional)" Width="200" VerticalAlignment="Center" />
-                        <ui:PasswordBox x:Name="TokenBox" Width="300"
-                                        PlaceholderText="ghp_… — stored in settings.json"
+                        <ui:PasswordBox x:Name="TokenBox" ToolTip="Optional GitHub token. Raises the lookup limit from 60 to 5,000 per hour. Stored encrypted for your Windows account." Width="300"
+                                        PlaceholderText="ghp_… — stored encrypted"
                                         PasswordChanged="Token_Changed" />
                     </StackPanel>
                     <TextBlock x:Name="BudgetText" FontSize="11" Opacity="0.6" Margin="204,6,0,0" />
 
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                         <TextBlock Text="Re-check versions after" Width="200" VerticalAlignment="Center" />
-                        <ComboBox x:Name="CacheBox" Width="180" SelectionChanged="Setting_Changed">
+                        <ComboBox x:Name="CacheBox" ToolTip="How long a looked-up version is trusted before UpdateHub checks again." Width="180" SelectionChanged="Setting_Changed">
                             <ComboBoxItem Content="1 hour" Tag="1" />
                             <ComboBoxItem Content="6 hours" Tag="6" />
                             <ComboBoxItem Content="12 hours" Tag="12" />
@@ -75,13 +75,13 @@
 
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                         <TextBlock Text="Simultaneous lookups" Width="200" VerticalAlignment="Center" />
-                        <ui:NumberBox x:Name="ConcurrencyBox" Width="180" Minimum="1" Maximum="16"
+                        <ui:NumberBox x:Name="ConcurrencyBox" ToolTip="How many version lookups run at once. Higher is faster but may hit rate limits." Width="180" Minimum="1" Maximum="16"
                                       ValueChanged="Setting_Changed" />
                     </StackPanel>
 
                     <TextBlock x:Name="CacheStats" FontSize="11" Opacity="0.6" Margin="0,12,0,0" />
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                        <ui:Button Content="Clear cached version data" Click="ClearCache_Click" />
+                        <ui:Button Content="Clear cached version data" Click="ClearCache_Click" ToolTip="Forget all saved version and release data. The next scan will be slower." />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -90,7 +90,7 @@
             <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="UPDATING" />
-                    <CheckBox x:Name="ElevatedBatch" Margin="0,6,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="ElevatedBatch" ToolTip="One administrator prompt for the whole batch, then updates run hidden in the background." Margin="0,6,0,0" Click="Setting_Changed"
                               Content="Update winget apps in the background as administrator" />
                     <TextBlock TextWrapping="Wrap" FontSize="11" Margin="24,4,0,0"
                                Foreground="{StaticResource MutedInkBrush}">
@@ -103,7 +103,7 @@
 
                     <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
                         <TextBlock Text="Simultaneous updates" Width="200" VerticalAlignment="Center" />
-                        <ui:NumberBox x:Name="UpdateConcurrencyBox" Width="180" Minimum="1" Maximum="6"
+                        <ui:NumberBox x:Name="UpdateConcurrencyBox" ToolTip="How many updates run at the same time when not using the administrator batch." Width="180" Minimum="1" Maximum="6"
                                       ValueChanged="Setting_Changed" />
                     </StackPanel>
                     <TextBlock Text="Applies to the non-elevated path; the elevated batch always runs one at a time."
@@ -116,32 +116,53 @@
             <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="AUTOMATIC CHECKS" />
-                    <CheckBox x:Name="CheckStartup" Margin="0,6,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="CheckStartup" ToolTip="Scans your programs automatically each time UpdateHub opens." Margin="0,6,0,0" Click="Setting_Changed"
                               Content="Scan when UpdateHub starts" />
-                    <CheckBox x:Name="Notify" Margin="0,4,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="Notify" ToolTip="Shows a Windows notification when new updates are found." Margin="0,4,0,0" Click="Setting_Changed"
                               Content="Show a notification when updates are found" />
 
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                         <TextBlock Text="Scheduled scan" Width="200" VerticalAlignment="Center" />
-                        <ComboBox x:Name="ScheduleBox" Width="180" SelectionChanged="Setting_Changed">
+                        <ComboBox x:Name="ScheduleBox" ToolTip="How often Windows should run a scan, even when UpdateHub is closed." Width="180" SelectionChanged="Setting_Changed">
                             <ComboBoxItem Content="Never" Tag="Never" />
                             <ComboBoxItem Content="Daily" Tag="Daily" />
                             <ComboBoxItem Content="Weekly (Mondays)" Tag="Weekly" />
                             <ComboBoxItem Content="Monthly (1st)" Tag="Monthly" />
                         </ComboBox>
                         <TextBlock Text="at" Margin="10,0,8,0" VerticalAlignment="Center" />
-                        <ui:NumberBox x:Name="HourBox" Width="90" Minimum="0" Maximum="23"
+                        <ui:NumberBox x:Name="HourBox" ToolTip="Hour of the day (0-23) the scheduled scan runs." Width="90" Minimum="0" Maximum="23"
                                       ValueChanged="Setting_Changed" />
                         <TextBlock Text=":00" Margin="4,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
 
-                    <CheckBox x:Name="AutoUpdate" Margin="0,10,0,0" Click="Setting_Changed"
+                    <CheckBox x:Name="AutoUpdate" ToolTip="Installs updates during the scheduled scan instead of only reporting them." Margin="0,10,0,0" Click="Setting_Changed"
                               Content="Also install updates automatically during the scheduled scan" />
                     <TextBlock x:Name="ScheduleStatus" FontSize="11" Opacity="0.6" Margin="0,8,0,0" />
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <ui:Button Content="Apply schedule" Click="ApplySchedule_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="Remove schedule" Click="RemoveSchedule_Click" />
+                        <ui:Button Content="Apply schedule" Click="ApplySchedule_Click" ToolTip="Create or update the Windows scheduled task with the settings above." Margin="0,0,8,0" />
+                        <ui:Button Content="Remove schedule" Click="RemoveSchedule_Click" ToolTip="Delete the Windows scheduled task." />
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Backup -->
+            <Border Style="{StaticResource CardStyle}" Margin="4,0,4,10">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="BACKUP AND RESTORE" />
+                    <TextBlock TextWrapping="Wrap" FontSize="11.5" Opacity="0.75" Margin="0,4,0,8">
+                        Save the list of programs winget knows about to a file, then reinstall
+                        them all silently on a new or reset PC. Programs winget does not know
+                        about are not included.
+                    </TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button x:Name="BackupButton" Content="Back up app list…" Click="Backup_Click"
+                                   Margin="0,0,8,0"
+                                   ToolTip="Save the winget-managed programs on this PC to a file." />
+                        <ui:Button x:Name="RestoreButton" Content="Restore from backup…" Click="Restore_Click"
+                                   ToolTip="Silently install every program in a backup file that is not already installed." />
+                    </StackPanel>
+                    <TextBlock x:Name="BackupStatus" FontSize="11" Opacity="0.6" Margin="0,8,0,0"
+                               TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
@@ -157,9 +178,9 @@
                     </TextBlock>
                     <TextBlock x:Name="PluginStats" FontSize="11.5" Margin="0,0,0,8" />
                     <StackPanel Orientation="Horizontal">
-                        <ui:Button Content="Open Plugins folder" Click="OpenPlugins_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="Write example plugin" Click="SamplePlugin_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="Import catalog…" Click="ImportCatalog_Click" />
+                        <ui:Button Content="Open Plugins folder" Click="OpenPlugins_Click" ToolTip="Open the folder where plugin JSON files go." Margin="0,0,8,0" />
+                        <ui:Button Content="Write example plugin" Click="SamplePlugin_Click" ToolTip="Create an example plugin file you can edit." Margin="0,0,8,0" />
+                        <ui:Button Content="Import catalog…" Click="ImportCatalog_Click" ToolTip="Load a catalog JSON file that maps programs to update sources." />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -170,9 +191,9 @@
                     <TextBlock Style="{StaticResource CardTitle}" Text="ABOUT" />
                     <TextBlock x:Name="AboutText" FontSize="11.5" TextWrapping="Wrap" Opacity="0.8" />
                     <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                        <ui:Button Content="Open data folder" Click="OpenData_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="View log" Click="OpenLog_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="Reset settings" Click="Reset_Click" />
+                        <ui:Button Content="Open data folder" Click="OpenData_Click" ToolTip="Open the folder holding UpdateHub settings, cache and logs." Margin="0,0,8,0" />
+                        <ui:Button Content="View log" Click="OpenLog_Click" ToolTip="Open the log file in Notepad." Margin="0,0,8,0" />
+                        <ui:Button Content="Reset settings" Click="Reset_Click" ToolTip="Put every setting back to its default." />
                     </StackPanel>
                 </StackPanel>
             </Border>

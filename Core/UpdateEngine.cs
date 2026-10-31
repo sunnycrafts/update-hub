@@ -56,8 +56,7 @@ public sealed class UpdateEngine
                 UpdateMethod.Chocolatey => await RunChocoUpgradeAsync(app, ct).ConfigureAwait(false),
                 UpdateMethod.Scoop => await RunScoopUpgradeAsync(app, ct).ConfigureAwait(false),
                 UpdateMethod.Installer => await RunInstallerAsync(app, Report, ct).ConfigureAwait(false),
-                UpdateMethod.MsStore => (UpdateOutcome.Failed,
-                    "Store apps are updated through the Microsoft Store, not from here."),
+                UpdateMethod.MsStore => await RunMsStoreUpgradeAsync(app, Report, ct).ConfigureAwait(false),
                 _ => (UpdateOutcome.Failed, "No automatic update method is available for this app."),
             };
 
@@ -197,6 +196,31 @@ public sealed class UpdateEngine
                 UpdateOutcome.Running);
             await Task.Delay(TimeSpan.FromSeconds(5 * attempt), ct).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Updates a Microsoft Store app through winget's msstore source, silently. winget
+    /// lists Store apps by product ID when it knows them; otherwise the exact display name
+    /// is the only handle available.
+    /// </summary>
+    private async Task<(UpdateOutcome, string)> RunMsStoreUpgradeAsync(
+        InstalledApp app, Action<string, UpdateOutcome> report, CancellationToken ct)
+    {
+        var target = !string.IsNullOrWhiteSpace(app.WingetId)
+            ? $"--id {Quote(app.WingetId)} --exact"
+            : $"--name {Quote(app.Name)} --exact";
+        var args = $"upgrade {target} --source msstore --silent " +
+                   "--accept-package-agreements --accept-source-agreements --disable-interactivity";
+
+        var result = await ProcessRunner.WingetAsync(args, ct, 900_000,
+            line => { if (line.Length > 0 && !line.StartsWith("  ")) report(line, UpdateOutcome.Running); })
+            .ConfigureAwait(false);
+
+        var (outcome, message) = InterpretWinget(result);
+        if (outcome == UpdateOutcome.Failed &&
+            result.Combined.Contains("No installed package", StringComparison.OrdinalIgnoreCase))
+            return (UpdateOutcome.Failed, "winget could not match this Store app; update it in the Microsoft Store.");
+        return (outcome, outcome == UpdateOutcome.Success ? "Updated through the Microsoft Store." : message);
     }
 
     private static (UpdateOutcome, string) InterpretWinget(ProcessResult result)

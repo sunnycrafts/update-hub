@@ -13,6 +13,7 @@ namespace UpdateHub.Core;
 ///   category:Development      category equals
 ///   size&gt;2GB                  install footprint
 ///   priority:critical         priority at or above
+///   startmenu:only|yes|no     Start Menu shortcut: only there / present / absent
 ///   security                  has missed security releases
 ///   outdated / current / unknown / ignored
 /// </code>
@@ -116,6 +117,16 @@ public sealed class SearchQuery
                 return op.StartsWith('<')
                     ? a => a.EstimatedSizeKb > 0 && a.EstimatedSizeKb < kb
                     : a => a.EstimatedSizeKb > kb;
+
+            case "startmenu" or "menu":
+                var v = value.ToLowerInvariant();
+                return v switch
+                {
+                    "only" => a => a.Sources == DetectionSource.StartMenu,
+                    "yes" or "in" => a => a.Sources.HasFlag(DetectionSource.StartMenu),
+                    "no" or "missing" => a => !a.Sources.HasFlag(DetectionSource.StartMenu),
+                    _ => null,
+                };
 
             case "source" or "src":
                 return a => a.ConfidenceSources.Any(s =>

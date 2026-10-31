@@ -47,6 +47,49 @@ public sealed class SettingsService
         }
 
         MigrateStaleTheme();
+        UnprotectToken();
+    }
+
+    /// <summary>
+    /// The GitHub token is encrypted with DPAPI (current Windows user) on disk, so another
+    /// user, a copied settings.json or a synced backup cannot read it. A plain-text token
+    /// left by an older version is adopted here and re-saved encrypted.
+    /// </summary>
+    private void UnprotectToken()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(Current.GitHubTokenProtected))
+            {
+                var bytes = System.Security.Cryptography.ProtectedData.Unprotect(
+                    Convert.FromBase64String(Current.GitHubTokenProtected), null,
+                    System.Security.Cryptography.DataProtectionScope.CurrentUser);
+                Current.GitHubToken = System.Text.Encoding.UTF8.GetString(bytes);
+            }
+        }
+        catch (Exception ex)
+        {
+            _log.Warn($"Saved GitHub token could not be decrypted (different Windows user?): {ex.Message}");
+            Current.GitHubToken = null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(Current.LegacyPlainGitHubToken))
+        {
+            Current.GitHubToken ??= Current.LegacyPlainGitHubToken;
+            _log.Info("Migrated a plain-text GitHub token to encrypted storage.");
+            Save();
+        }
+        Current.LegacyPlainGitHubToken = null;
+    }
+
+    private void ProtectToken()
+    {
+        Current.LegacyPlainGitHubToken = null;
+        Current.GitHubTokenProtected = string.IsNullOrWhiteSpace(Current.GitHubToken)
+            ? null
+            : Convert.ToBase64String(System.Security.Cryptography.ProtectedData.Protect(
+                System.Text.Encoding.UTF8.GetBytes(Current.GitHubToken), null,
+                System.Security.Cryptography.DataProtectionScope.CurrentUser));
     }
 
     /// <summary>
@@ -70,6 +113,7 @@ public sealed class SettingsService
     {
         try
         {
+            ProtectToken();
             var json = JsonSerializer.Serialize(Current, JsonOptions);
             // Write-then-replace so a crash mid-write cannot leave a truncated file.
             var temp = _path + ".tmp";

@@ -19,6 +19,9 @@ public partial class MainWindow
     public MainWindow()
     {
         InitializeComponent();
+        var windowTitle = $"UpdateHub {App.VersionText}";
+        Title = windowTitle;
+        AppTitleBar.Title = windowTitle;
         _vm = new MainViewModel(App.Services);
         DataContext = _vm;
         _vm.PropertyChanged += OnViewModelChanged;

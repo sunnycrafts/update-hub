@@ -16,7 +16,18 @@ public sealed class AppSettings
     public List<string> CustomFolders { get; set; } = new();
 
     /// <summary>Raises the GitHub API budget from 60/hr to 5000/hr. Optional.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public string? GitHubToken { get; set; }
+
+    /// <summary>The token as stored on disk: encrypted with Windows DPAPI for this user only.</summary>
+    public string? GitHubTokenProtected { get; set; }
+
+    /// <summary>
+    /// Read-only migration hook. Older versions wrote the token here in plain text under
+    /// the name "GitHubToken"; it is read once, re-saved encrypted, and never written again.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("GitHubToken")]
+    public string? LegacyPlainGitHubToken { get; set; }
 
     /// <summary>How long a "latest version" lookup stays fresh before we re-query.</summary>
     public int CacheHours { get; set; } = 12;

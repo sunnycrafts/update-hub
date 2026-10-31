@@ -66,7 +66,7 @@ public partial class SettingsPage : UserControl
             $"({Vm.Services.Catalog.PluginEntryCount} from plugins), " +
             $"{Vm.Services.Providers.Vendor.RuleCount} vendor rules.";
         AboutText.Text =
-            $"UpdateHub 0.8.2 — {Sources.ArchitectureHelper.Display}\n" +
+            $"UpdateHub {App.VersionText} —{Sources.ArchitectureHelper.Display}\n" +
             $"Data folder: {App.DataRoot}\n" +
             $"Database: {Vm.Services.Db.Path} ({Vm.Services.Db.SizeBytes / 1024:N0} KB)";
     }
@@ -188,6 +188,63 @@ public partial class SettingsPage : UserControl
         Save();
         await Vm.Services.Scheduler.RemoveAsync();
         ScheduleStatus.Text = "Not scheduled";
+    }
+
+    private async void Backup_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = "Back up the app list",
+            Filter = "App list (*.json)|*.json",
+            FileName = $"UpdateHub-apps-{DateTime.Now:yyyy-MM-dd}.json",
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        BackupButton.IsEnabled = RestoreButton.IsEnabled = false;
+        BackupStatus.Text = "Backing up…";
+        try
+        {
+            var r = await Core.ProcessRunner.WingetAsync(
+                $"export -o \"{dialog.FileName}\" --accept-source-agreements --disable-interactivity",
+                default, 180_000);
+            BackupStatus.Text = r.Ok && File.Exists(dialog.FileName)
+                ? $"Saved to {dialog.FileName}"
+                : "winget could not create the backup. " + r.Combined.Trim();
+        }
+        catch (Exception ex) { BackupStatus.Text = "Backup failed: " + ex.Message; }
+        finally { BackupButton.IsEnabled = RestoreButton.IsEnabled = true; }
+    }
+
+    private async void Restore_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Choose a backup to restore",
+            Filter = "App list (*.json)|*.json",
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        if (MessageBox.Show(
+                "Install every program in this backup that is not already installed?" + (char)10 + (char)10 +
+                "They install silently, one after another, and this can take a long while.",
+                "Restore from backup", MessageBoxButton.OKCancel, MessageBoxImage.Question)
+            != MessageBoxResult.OK) return;
+
+        BackupButton.IsEnabled = RestoreButton.IsEnabled = false;
+        BackupStatus.Text = "Restoring… this can take a while.";
+        try
+        {
+            var r = await Core.ProcessRunner.WingetAsync(
+                $"import -i \"{dialog.FileName}\" --accept-package-agreements " +
+                "--accept-source-agreements --ignore-unavailable --ignore-versions --disable-interactivity",
+                default, 3_600_000);
+            BackupStatus.Text = r.Ok
+                ? "Restore finished. Run a scan to see the new programs."
+                : "Restore finished with problems — see the log. " + Core.ProcessRunner.LastLine(r.Combined);
+            Vm?.Services.Log.Info($"winget import exit {r.ExitCode}");
+        }
+        catch (Exception ex) { BackupStatus.Text = "Restore failed: " + ex.Message; }
+        finally { BackupButton.IsEnabled = RestoreButton.IsEnabled = true; }
     }
 
     private void OpenPlugins_Click(object sender, RoutedEventArgs e)

@@ -106,5 +106,68 @@ Chk("describe no-update", ElevatedUpdateRunner.DescribeOutcome(UpdateOutcome.NoU
     Chk("describe truncates long detail", described.Length <= 180, true);
     Chk("describe keeps message prefix", described.StartsWith("exit=1603"), true);
 }
+Console.WriteLine("== start menu search, no-source reason, manual-check link ==");
+{
+    var both = new InstalledApp { Name = "Both", Sources = DetectionSource.Registry | DetectionSource.StartMenu };
+    var only = new InstalledApp { Name = "Only", Sources = DetectionSource.StartMenu };
+    var none = new InstalledApp { Name = "None", Sources = DetectionSource.Registry };
+    Chk("startmenu:only matches only-menu", SearchQuery.Parse("startmenu:only").Matches(only), true);
+    Chk("startmenu:only skips shared", SearchQuery.Parse("startmenu:only").Matches(both), false);
+    Chk("startmenu:yes matches shared", SearchQuery.Parse("startmenu:yes").Matches(both), true);
+    Chk("startmenu:no matches absent", SearchQuery.Parse("startmenu:no").Matches(none), true);
+    Chk("startmenu:no skips present", SearchQuery.Parse("startmenu:no").Matches(both), false);
+    Chk("text for only", only.StartMenuText, "Start Menu only (no install record)");
+    Chk("text for absent", none.StartMenuText, "Not in the Start Menu");
+    Chk("reason null when latest known", new InstalledApp { LatestVersion = "1.0" }.NoSourceReason is null, true);
+    Chk("reason present when unknown", none.NoSourceReason is not null, true);
+    Chk("manual link is https", none.ManualCheckUrl.StartsWith("https://"), true);
+    Chk("manual link prefers download page",
+        new InstalledApp { Name = "X", DownloadPageUrl = "https://example.com/dl" }.ManualCheckUrl, "https://example.com/dl");
+    Chk("manual link rejects non-https homepage",
+        new InstalledApp { Name = "X", Homepage = "http://example.com" }.ManualCheckUrl.StartsWith("https://duckduckgo.com/"), true);
+}
+Console.WriteLine("== launch options (admin / compatibility) and shortcut keys ==");
+{
+    var p = LaunchOptions.Parse("~ RUNASADMIN WIN7RTM HIGHDPIAWARE SOMEFUTUREFLAG");
+    Chk("parse admin", p.RunAsAdmin, true);
+    Chk("parse compat os", p.CompatOs, "WIN7RTM");
+    Chk("parse high dpi", p.OverrideHighDpi, true);
+    Chk("parse keeps unknown flag", p.OtherFlags.Contains("SOMEFUTUREFLAG"), true);
+    Chk("compose round trip", LaunchOptions.Compose(p), "~ WIN7RTM RUNASADMIN HIGHDPIAWARE SOMEFUTUREFLAG");
+    Chk("compose empty -> blank", LaunchOptions.Compose(new LaunchSettings()), "");
+    Chk("parse empty", LaunchOptions.Parse(null).RunAsAdmin, false);
+
+    Chk("hotkey ctrl+alt+f ok", ShortcutHotkey.IsValid("ctrl + alt + f"), true);
+    Chk("hotkey ctrl+shift+F12 ok", ShortcutHotkey.IsValid("CTRL+SHIFT+F12"), true);
+    Chk("hotkey empty ok (clears)", ShortcutHotkey.IsValid(""), true);
+    Chk("hotkey single letter rejected", ShortcutHotkey.IsValid("F"), false);
+    Chk("hotkey ctrl+f rejected (one modifier)", ShortcutHotkey.IsValid("CTRL+F"), false);
+    Chk("hotkey repeated modifier rejected", ShortcutHotkey.IsValid("CTRL+CTRL+F"), false);
+    Chk("hotkey modifiers only rejected", ShortcutHotkey.IsValid("CTRL+ALT"), false);
+    Chk("hotkey normalize", ShortcutHotkey.Normalize(" control + alt + g "), "CTRL+ALT+G");
+
+    // Real registry round trip on a throwaway path, cleaned up afterwards.
+    var fake = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "uh-test-" + Guid.NewGuid().ToString("N") + ".exe");
+    try
+    {
+        LaunchOptions.Write(fake, new LaunchSettings { RunAsAdmin = true, CompatOs = "WINXPSP3" });
+        var back = LaunchOptions.Read(fake);
+        Chk("registry write/read admin", back.RunAsAdmin, true);
+        Chk("registry write/read os", back.CompatOs, "WINXPSP3");
+    }
+    finally { LaunchOptions.Write(fake, new LaunchSettings()); }
+    Chk("registry cleaned up", LaunchOptions.Read(fake).RunAsAdmin, false);
+
+    // Real shortcut-key round trip through a Start Menu shortcut, then remove it.
+    var exe = System.IO.Path.Combine(Environment.SystemDirectory, "notepad.exe");
+    string? lnk = null;
+    try
+    {
+        lnk = ShortcutHotkey.Apply("UpdateHub test shortcut", exe, "ctrl+alt+f9");
+        Chk("hotkey stored on shortcut", ShortcutHotkey.Current(exe).ToUpperInvariant().Contains("F9"), true);
+    }
+    finally { if (lnk is not null && System.IO.File.Exists(lnk)) System.IO.File.Delete(lnk); }
+    Chk("hotkey cleaned up", ShortcutHotkey.Current(exe).ToUpperInvariant().Contains("F9"), false);
+}
 Console.WriteLine($"\n{pass} passed, {fail} failed");
 return fail==0?0:1;

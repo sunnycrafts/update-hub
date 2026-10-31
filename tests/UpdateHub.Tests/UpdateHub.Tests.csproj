@@ -41,6 +41,8 @@
     <Compile Include="..\..\Models\InstalledApp.cs" />
     <Compile Include="..\..\Core\AppClassifier.cs" />
     <Compile Include="..\..\Core\PriorityCalculator.cs" />
+    <Compile Include="..\..\Core\SearchQuery.cs" />
+    <Compile Include="..\..\Core\LaunchOptions.cs" />
 
     <!-- ElevatedUpdateRunner's pure status-mapping logic (InterpretStatus /
          DescribeOutcome) is worth testing directly against the JSON shape the embedded

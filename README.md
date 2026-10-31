@@ -228,3 +228,7 @@ update-hub/
 XLSX and PDF are written directly rather than through a library — both exports are flat
 table reports, and hand-writing them keeps the portable executable free of native
 dependencies.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

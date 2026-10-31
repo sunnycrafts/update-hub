@@ -38,6 +38,28 @@ public partial class AppListView : UserControl
         OpenExternal(url);
     }
 
+    private void LaunchOptions_Click(object sender, RoutedEventArgs e)
+    {
+        var app = Vm?.SelectedApp;
+        if (app is null) return;
+
+        var exe = app.ExePath;
+        if (string.IsNullOrWhiteSpace(exe) || !System.IO.File.Exists(exe))
+        {
+            MessageBox.Show(
+                "UpdateHub does not know which program file starts this app, so it cannot set " +
+                "launch options for it. This happens with Store apps and some system components.",
+                app.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        new LaunchOptionsDialog(app, exe) { Owner = Window.GetWindow(this) }.ShowDialog();
+    }
+
+    private void CheckManually_Click(object sender, RoutedEventArgs e)
+    {
+        if (Vm?.SelectedApp is { } app) OpenExternal(app.ManualCheckUrl);
+    }
+
     private void Folder_Click(object sender, RoutedEventArgs e)
     {
         var path = Vm?.SelectedApp?.InstallLocation;

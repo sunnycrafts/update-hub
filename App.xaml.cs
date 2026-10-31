@@ -8,7 +8,12 @@ namespace UpdateHub;
 public partial class App : Application
 {
     /// <summary>Per-user data root: %LOCALAPPDATA%\UpdateHub.</summary>
-    public static string DataRoot { get; } = Path.Combine(
+    /// <summary>Single source of truth for the displayed version: the csproj &lt;Version&gt;.</summary>
+    public static string VersionText { get; } =
+        System.Reflection.Assembly.GetExecutingAssembly().GetName().Version is { } v
+            ? $"{v.Major}.{v.Minor}.{v.Build}" : "?";
+
+    public static string DataRoot { get; } =Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UpdateHub");
 
     public static AppServices Services { get; private set; } = null!;
@@ -170,6 +175,24 @@ public partial class App : Application
                 {
                     results.Add($"{page.Name}: FAILED — {ex.GetType().Name}: {ex.Message}");
                 }
+            }
+
+            try
+            {
+                var dialog = new UI.Views.LaunchOptionsDialog(
+                    new Models.InstalledApp { Name = "Self-test" },
+                    System.IO.Path.Combine(Environment.SystemDirectory, "notepad.exe"));
+                dialog.Left = -10000;
+                dialog.Show();
+                // Let the title bar finish loading before closing, or WPF-UI throws
+                // "Hwnd of zero" from its ContentRendered handler on a dead window.
+                Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ContextIdle);
+                dialog.Close();
+                results.Add("LaunchOptionsDialog: OK");
+            }
+            catch (Exception ex)
+            {
+                results.Add($"LaunchOptionsDialog: FAILED — {ex.GetType().Name}: {ex.Message}");
             }
 
             Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ContextIdle);

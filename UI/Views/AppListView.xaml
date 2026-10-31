@@ -177,6 +177,8 @@
                         <Separator />
                         <MenuItem Header="Roll back to an earlier version…"
                                   Click="Rollback_Click" />
+                        <MenuItem Header="Launch options (admin, compatibility, shortcut key)…"
+                                  Click="LaunchOptions_Click" />
                         <MenuItem Header="Uninstall…" Click="Uninstall_Click" />
                         <Separator />
                         <MenuItem Header="Verify digital signature" Click="Verify_Click" />
@@ -211,6 +213,10 @@
                                        Foreground="{StaticResource MutedInkBrush}"
                                        TextWrapping="Wrap" />
 
+                            <TextBlock Text="{Binding StartMenuText}" FontSize="11" Margin="0,2,0,0"
+                                       Foreground="{StaticResource MutedInkBrush}"
+                                       ToolTip="Whether a Start Menu shortcut points at this program. Search with startmenu:only, startmenu:yes or startmenu:no." />
+
                             <!-- Current status, stated the way Windows Settings would. -->
                             <Border Margin="0,14,0,0" CornerRadius="7" Padding="12,9"
                                     Background="{Binding Priority,
@@ -221,6 +227,24 @@
                                     <TextBlock Text="{Binding PriorityReason}" FontSize="11"
                                                Foreground="White" Opacity="0.9"
                                                TextWrapping="Wrap" Margin="0,2,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Why there is no "latest" version, with a way to check by hand. -->
+                            <Border Margin="0,10,0,0" CornerRadius="7" Padding="12,9"
+                                    Background="{StaticResource SubtleBrush}"
+                                    Visibility="{Binding NoSourceReason,
+                                                 Converter={StaticResource NullVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="NO UPDATE SOURCE" FontSize="9.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource MutedInkBrush}" />
+                                    <TextBlock Text="{Binding NoSourceReason}" FontSize="11.5"
+                                               TextWrapping="Wrap" Margin="0,3,0,0"
+                                               Foreground="{StaticResource InkBrush}" />
+                                    <Button Content="Check manually" Margin="0,8,0,0"
+                                            HorizontalAlignment="Left" Click="CheckManually_Click"
+                                            ToolTip="Open the publisher's page, or a web search for this program's download page." />
                                 </StackPanel>
                             </Border>
 
