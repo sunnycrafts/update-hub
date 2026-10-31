@@ -37,6 +37,30 @@ public static class WingetLimits
         return null;
     }
 
+    /// <summary>The installed version from `winget list --id X` output, or null.</summary>
+    public static string? ParseInstalledVersion(string output, string id)
+    {
+        foreach (var raw in output.Split((char)10))
+        {
+            var tokens = raw.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < tokens.Length - 1; i++)
+            {
+                if (!string.Equals(tokens[i], id, StringComparison.OrdinalIgnoreCase)) continue;
+                // winget prints a lone ">" before the version when several are installed.
+                var next = tokens[i + 1] is ">" or "<" && i + 2 < tokens.Length ? tokens[i + 2] : tokens[i + 1];
+                var v = next.Trim().TrimStart('>', '<');
+                return v.Length > 0 && char.IsDigit(v[0]) ? v : null;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>True when the installed version is at or past the version thought to be missing.</summary>
+    public static bool IsCurrent(string installed, string? latest) =>
+        string.IsNullOrEmpty(latest)
+        || VersionComparer.IsSameProductVersion(installed, latest)
+        || (VersionComparer.Compare(installed, latest) is int c && c >= 0);
+
     /// <summary>
     /// After a recognised limit, stop offering this app to "Update all" (it would fail the
     /// same way again) while leaving the update flag on, so it still shows as behind.

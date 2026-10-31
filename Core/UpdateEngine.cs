@@ -60,10 +60,22 @@ public sealed class UpdateEngine
                 _ => (UpdateOutcome.Failed, "No automatic update method is available for this app."),
             };
 
+            // "No newer version" from winget usually means the update is already installed
+            // (an earlier batch did it, or the app updated itself) and our list is stale.
+            // Ask winget what is really installed before reporting anything as a limit.
+            var reconciled = false;
+            if (outcome is UpdateOutcome.NotInWinget or UpdateOutcome.NoUpdateNeeded
+                && await ReconcileAsync(app, ct).ConfigureAwait(false))
+            {
+                outcome = UpdateOutcome.Success;
+                message = $"Already up to date ({app.InstalledVersion}).";
+                reconciled = true;
+            }
+
             _repo.FinishUpdate(recordId, outcome, message);
             _log.Info($"Update end: {app.Name} -> {outcome}: {message}");
 
-            if (outcome == UpdateOutcome.Success) MarkSuccess(app);
+            if (outcome == UpdateOutcome.Success && !reconciled) MarkSuccess(app);
             else if (outcome == UpdateOutcome.NotInWinget) WingetLimits.MarkNotAutomatable(app);
 
             Report(message, outcome);
@@ -107,14 +119,59 @@ public sealed class UpdateEngine
     /// elevated script itself never touches the database — this keeps all persistence in
     /// the unelevated caller.
     /// </summary>
-    public void RecordElevatedResult(InstalledApp app, UpdateOutcome outcome, string message)
+    public async Task<UpdateOutcome> RecordElevatedResultAsync(
+        InstalledApp app, UpdateOutcome outcome, string message, CancellationToken ct = default)
     {
+        var reconciled = false;
+        if (outcome is UpdateOutcome.NotInWinget or UpdateOutcome.NoUpdateNeeded
+            && await ReconcileAsync(app, ct).ConfigureAwait(false))
+        {
+            outcome = UpdateOutcome.Success;
+            message = $"Already up to date ({app.InstalledVersion}).";
+            reconciled = true;
+        }
+
         var recordId = _repo.BeginUpdate(app);
         _repo.FinishUpdate(recordId, outcome, message);
         _log.Info($"Elevated update end: {app.Name} -> {outcome}: {message}");
-        if (outcome == UpdateOutcome.Success) MarkSuccess(app);
+        if (outcome == UpdateOutcome.Success && !reconciled) MarkSuccess(app);
         else if (outcome == UpdateOutcome.NotInWinget) WingetLimits.MarkNotAutomatable(app);
+        return outcome;
     }
+
+    /// <summary>
+    /// Reads the version winget says is installed for this package and, if it is already at
+    /// (or past) the version we believed was missing, clears the update flag. Returns true
+    /// when the app turns out to be current. Fixes a stale list after a batch, a self-update,
+    /// or an update done outside UpdateHub.
+    /// </summary>
+    public async Task<bool> ReconcileAsync(InstalledApp app, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(app.WingetId)) return false;
+        try
+        {
+            var r = await ProcessRunner.WingetAsync(
+                $"list --id {Quote(app.WingetId)} --exact --disable-interactivity --accept-source-agreements",
+                ct, 60_000).ConfigureAwait(false);
+            var installed = WingetLimits.ParseInstalledVersion(r.StdOut, app.WingetId);
+            if (string.IsNullOrEmpty(installed)) return false;
+
+            app.InstalledVersion = installed;
+            if (!WingetLimits.IsCurrent(installed, app.LatestVersion)) return false;
+
+            app.UpdateAvailable = false;
+            app.InstallDate = DateTime.Now;
+            _log.Info($"Reconciled {app.Name}: winget reports {installed} installed, already current.");
+            return true;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _log.Warn($"Could not reconcile {app.Name}: {ex.Message}");
+            return false;
+        }
+    }
+
 
     /// <summary>
     /// Applies several updates with bounded concurrency.

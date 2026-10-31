@@ -2,6 +2,27 @@
 
 All notable changes to UpdateHub. Versions follow semantic versioning.
 
+## [0.10.3] — 2026-10-31
+
+Reported as "it's not able to install at all". The history showed the opposite: eight updates
+had installed that day, and the apps reported as failed (Node.js, WinRAR, PDFgear, Everything,
+Autodesk Identity Manager, Bulk Rename Utility, VC++ v14) were already up to date. The list
+was stale, and 0.10.2 had mislabelled that as "winget does not have a newer version yet".
+
+### Fixed
+- **"No newer version" from winget now checks what is really installed.** When winget says
+  there is nothing to upgrade, UpdateHub reads the installed version with `winget list` and,
+  if it already matches or passes the version thought to be missing, clears the update and
+  records "Already up to date (7.23.0)" as a success, in both the normal and the elevated
+  batch path. Only apps that are genuinely behind and cannot be upgraded by winget (Chrome,
+  Edge, Android Studio, Tesseract) still report "Not via winget".
+- A rescan on this PC dropped the outstanding list from 24 to 11, confirming the others had
+  installed.
+
+### Tests
+- 144 assertions, using real `winget list` lines from this PC and the exact stale-row
+  cases (WinRAR, Node.js, PDFgear against Chrome and qBittorrent, which really are behind).
+
 ## [0.10.2] — 2026-10-31
 
 Reported as "updates are failing". Ten updates in the batch had actually installed; the rest

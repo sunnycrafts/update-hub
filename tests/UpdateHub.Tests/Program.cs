@@ -218,6 +218,24 @@ Console.WriteLine("== winget limits are not failures (messages taken from a real
     Chk("still flagged as behind", app.UpdateAvailable, true);
 }
 
+Console.WriteLine("== reconcile: a stale 'update available' that is already installed ==");
+{
+    // Lines copied from real `winget list --id ... --exact` output on this PC.
+    var winrar = "Name          Id            Version Source\n-------------------------------------\nWinRAR 7.23 (64-bit) RARLab.WinRAR 7.23.0  winget\n";
+    Chk("parse winrar", WingetLimits.ParseInstalledVersion(winrar, "RARLab.WinRAR"), "7.23.0");
+    var qbit = "qBittorrent 4.4.5 qBittorrent.qBittorrent 4.4.5   5.3.0     winget";
+    Chk("parse picks installed, not available column", WingetLimits.ParseInstalledVersion(qbit, "qBittorrent.qBittorrent"), "4.4.5");
+    Chk("parse skips lone > marker", WingetLimits.ParseInstalledVersion("X Some.Id > 1.2.3 winget", "Some.Id"), "1.2.3");
+    Chk("parse id missing -> null", WingetLimits.ParseInstalledVersion(winrar, "Other.Id"), null);
+    Chk("winrar 7.23.0 is current vs 7.23.0", WingetLimits.IsCurrent("7.23.0", "7.23.0"), true);
+    Chk("node 26.13.0 current vs 26.13.0", WingetLimits.IsCurrent("26.13.0", "26.13.0"), true);
+    Chk("pdfgear 3.0.1 current vs 3.0.1", WingetLimits.IsCurrent("3.0.1", "3.0.1"), true);
+    Chk("installed newer than latest is current", WingetLimits.IsCurrent("156.0.8078.74", "156.0.8078.48"), true);
+    Chk("chrome .74 vs real latest 157 is NOT current", WingetLimits.IsCurrent("156.0.8078.74", "157.0.8103.27"), false);
+    Chk("qbittorrent 4.4.5 vs 5.3.0 not current", WingetLimits.IsCurrent("4.4.5", "5.3.0"), false);
+    Chk("unknown latest counts as current", WingetLimits.IsCurrent("1.0", null), true);
+}
+
 Console.WriteLine("== driver installer: output mapping and a real dry run of the script ==");
 {
     var lines = new[]

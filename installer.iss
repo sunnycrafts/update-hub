@@ -7,7 +7,7 @@
 ; Build: run "dotnet publish -c Release -o publish" first, then compile this with ISCC.
 
 #define AppName "UpdateHub"
-#define AppVersion "0.10.2"
+#define AppVersion "0.10.3"
 #define AppPublisher "UpdateHub"
 #define AppExeName "UpdateHub.exe"
 #define SourceDir "publish"

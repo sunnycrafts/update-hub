@@ -156,7 +156,7 @@ a full library resolves in one pass.
 dotnet run --project tests/UpdateHub.Tests
 ```
 
-133 assertions over the logic that has to stay correct, exiting non-zero on failure. It is a
+144 assertions over the logic that has to stay correct, exiting non-zero on failure. It is a
 plain console app rather than a test framework, compiling the same source files the
 application uses so there is nothing to keep in sync.
 

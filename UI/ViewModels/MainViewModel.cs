@@ -492,8 +492,8 @@ public sealed partial class MainViewModel : ObservableObject
                     var app = wingetTargets.FirstOrDefault(a =>
                         string.Equals(a.WingetId, result.WingetId, StringComparison.OrdinalIgnoreCase));
                     if (app is null) continue;
-                    _s.Updater.RecordElevatedResult(app, result.Outcome, result.Message);
-                    outcomes[app.Key] = result.Outcome;
+                    outcomes[app.Key] = await _s.Updater.RecordElevatedResultAsync(
+                        app, result.Outcome, result.Message, ct);
                 }
             }
 
