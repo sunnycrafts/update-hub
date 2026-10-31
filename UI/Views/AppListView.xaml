@@ -11,10 +11,28 @@
 
         <!-- ===== Table ===== -->
         <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="6,10">
-            <DataGrid x:Name="Grid"
+            <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Selective updating: pick rows (Ctrl/Shift-click), then update just those. -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4,0,4,8">
+                <ui:Button x:Name="UpdateSelectedButton" Content="Update selected (0)"
+                           Appearance="Primary" IsEnabled="False" Click="Update_Click" Margin="0,0,8,0"
+                           ToolTip="Update only the rows you have selected. Ctrl-click or Shift-click to select several." />
+                <ui:Button Content="Select all with updates" Click="SelectUpdatable_Click" Margin="0,0,8,0"
+                           ToolTip="Select every row that has an update, so you can then deselect the ones you do not want with Ctrl-click." />
+                <ui:Button Content="Clear selection" Click="ClearSelection_Click"
+                           ToolTip="Deselect everything." />
+            </StackPanel>
+
+            <DataGrid x:Name="Grid" Grid.Row="1"
                       ItemsSource="{Binding AppsView}"
                       SelectedItem="{Binding SelectedApp, Mode=TwoWay}"
                       SelectionMode="Extended"
+                      SelectionChanged="Grid_SelectionChanged"
                       MouseDoubleClick="Grid_DoubleClick">
                 <DataGrid.Columns>
                     <!-- Priority leads: this is the answer to "what needs attention". -->
@@ -188,6 +206,7 @@
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>
+            </Grid>
         </Border>
 
         <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Center"

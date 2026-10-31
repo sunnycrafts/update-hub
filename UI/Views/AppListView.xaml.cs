@@ -23,10 +23,26 @@ public partial class AppListView : UserControl
             await Vm.UpdateManyAsync(new[] { app });
     }
 
+    private void Grid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var n = Selection.Count(a => a.UpdateAvailable && !a.IsIgnored);
+        UpdateSelectedButton.Content = $"Update selected ({n})";
+        UpdateSelectedButton.IsEnabled = n > 0;
+    }
+
+    private void SelectUpdatable_Click(object sender, RoutedEventArgs e)
+    {
+        Grid.SelectedItems.Clear();
+        foreach (var item in Grid.Items.OfType<InstalledApp>().Where(a => a.UpdateAvailable && !a.IsIgnored))
+            Grid.SelectedItems.Add(item);
+    }
+
+    private void ClearSelection_Click(object sender, RoutedEventArgs e) => Grid.SelectedItems.Clear();
+
     private async void Update_Click(object sender, RoutedEventArgs e)
     {
         if (Vm is null) return;
-        var targets = Selection.Where(a => a.UpdateAvailable).ToList();
+        var targets = Selection.Where(a => a.UpdateAvailable && !a.IsIgnored).ToList();
         if (targets.Count == 0) return;
         await Vm.UpdateManyAsync(targets);
     }

@@ -195,5 +195,50 @@ Console.WriteLine("== drivers: real local scan, vendor pages, privacy ==");
     DriverScanner.Flag(notFlagged, new List<PendingDriver> { new() { Model = "Test GPU", Date = new DateTime(2024, 1, 1) } });
     Chk("older Windows Update driver not flagged", notFlagged[0].NewerOnWindowsUpdate, false);
 }
+Console.WriteLine("== driver installer: output mapping and a real dry run of the script ==");
+{
+    var lines = new[]
+    {
+        "{\"status\":\"restorepoint\",\"message\":\"created\"}",
+        "{\"status\":\"downloading\",\"count\":2}",
+        "{\"status\":\"item\",\"title\":\"Intel - Display - 31.0\",\"code\":2}",
+        "{\"status\":\"item\",\"title\":\"Realtek - Sound - 6.0\",\"code\":4}",
+        "{\"status\":\"done\",\"reboot\":true}",
+    };
+    var r = DriverInstaller.ParseOutput(lines);
+    Chk("restore point parsed", r.RestorePoint, "created");
+    Chk("two items parsed", r.Items.Count, 2);
+    Chk("code 2 is ok", r.Items[0].Ok, true);
+    Chk("code 4 is failed", r.Items[1].Ok, false);
+    Chk("code 4 detail", r.Items[1].Detail, "Failed");
+    Chk("reboot flag parsed", r.RebootRequired, true);
+    Chk("error line parsed", DriverInstaller.ParseOutput(new[] { "{\"status\":\"error\",\"message\":\"boom\"}" }).Error, "boom");
+    Chk("garbage line ignored", DriverInstaller.ParseOutput(new[] { "{not json", "" }).Items.Count, 0);
+
+    // Real run of the actual script, unelevated, with no titles: it must search Windows
+    // Update successfully and report "none" without installing anything.
+    var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "uh-drv-" + Guid.NewGuid().ToString("N"));
+    System.IO.Directory.CreateDirectory(dir);
+    try
+    {
+        var ps1 = System.IO.Path.Combine(dir, "d.ps1");
+        var inp = System.IO.Path.Combine(dir, "in.json");
+        var outp = System.IO.Path.Combine(dir, "out.jsonl");
+        System.IO.File.WriteAllText(ps1, DriverInstaller.ScriptText, new System.Text.UTF8Encoding(true));
+        System.IO.File.WriteAllText(inp, "[]");
+        System.IO.File.WriteAllText(outp, "");
+        var psi = new System.Diagnostics.ProcessStartInfo(
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"System32\WindowsPowerShell\v1.0\powershell.exe"),
+            $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{ps1}\" -In \"{inp}\" -Out \"{outp}\"")
+        { UseShellExecute = false, CreateNoWindow = true };
+        using var proc = System.Diagnostics.Process.Start(psi)!;
+        Chk("dry run finishes", proc.WaitForExit(180_000), true);
+        var dry = DriverInstaller.ParseOutput(System.IO.File.ReadAllLines(outp));
+        Chk("dry run: nothing installed", dry.Items.Count, 0);
+        Chk("dry run: reports no matching drivers (not a script error)",
+            dry.Error, "Windows Update no longer offers those drivers.");
+    }
+    finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+}
 Console.WriteLine($"\n{pass} passed, {fail} failed");
 return fail==0?0:1;

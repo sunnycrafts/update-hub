@@ -48,6 +48,7 @@
     <Compile Include="..\..\Core\SearchQuery.cs" />
     <Compile Include="..\..\Core\LaunchOptions.cs" />
     <Compile Include="..\..\Core\DriverScanner.cs" />
+    <Compile Include="..\..\Core\DriverInstaller.cs" />
 
     <!-- ElevatedUpdateRunner's pure status-mapping logic (InterpretStatus /
          DescribeOutcome) is worth testing directly against the JSON shape the embedded

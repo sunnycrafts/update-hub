@@ -81,6 +81,18 @@
                     <TextBlock Style="{StaticResource CardTitle}" Text="NEWER DRIVERS FROM WINDOWS UPDATE" />
                     <TextBlock x:Name="PendingText" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0"
                                Foreground="{StaticResource InkBrush}" Text="Not checked yet." />
+                    <ListBox x:Name="PendingList" SelectionMode="Extended" MaxHeight="220" Margin="0,8,0,0"
+                             Visibility="Collapsed" DisplayMemberPath="Title"
+                             ToolTip="Ctrl-click or Shift-click to choose which driver updates to install." />
+                    <WrapPanel x:Name="InstallPanel" Margin="0,10,0,0" Visibility="Collapsed">
+                        <ui:Button x:Name="InstallSelectedButton" Content="Install selected" Appearance="Primary"
+                                   Click="InstallSelected_Click" Margin="0,0,8,6"
+                                   ToolTip="Install the highlighted driver updates from Windows Update. Asks for administrator approval and tries to create a restore point first." />
+                        <ui:Button x:Name="InstallAllButton" Content="Install all" Click="InstallAll_Click" Margin="0,0,8,6"
+                                   ToolTip="Install every driver update listed above." />
+                    </WrapPanel>
+                    <TextBlock x:Name="InstallStatus" FontSize="11.5" Opacity="0.8" TextWrapping="Wrap"
+                               Margin="0,4,0,0" />
                 </StackPanel>
             </Border>
         </StackPanel>

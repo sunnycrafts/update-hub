@@ -2,6 +2,28 @@
 
 All notable changes to UpdateHub. Versions follow semantic versioning.
 
+## [0.10.1] — 2026-10-31
+
+### Added
+- **Update selected.** The Updates and Applications lists now have a visible
+  "Update selected (N)" button, plus "Select all with updates" and "Clear selection".
+  Ctrl-click or Shift-click rows to choose exactly which programs to update; the button counts
+  only rows that actually have an update and are not ignored. Multi-select already worked, but
+  the only visible buttons were "Update all" and a hidden right-click item.
+
+- **Install driver updates.** On the Drivers page, newer drivers that Windows Update offers
+  are listed and can be installed selectively ("Install selected") or all at once ("Install
+  all"). One administrator prompt, a confirmation first, and a system restore point is
+  attempted before anything is installed (the result says if Windows did not allow one).
+  Only Microsoft-distributed, signed drivers go through this, via the Windows Update Agent;
+  the script is static and driver titles travel in a JSON file, never executed. The result
+  lists each driver as installed, installed with warnings or failed, and says if a restart
+  is needed.
+
+### Tests
+- 122 assertions, including a real unelevated dry run of the driver script (finds nothing
+  to install, installs nothing) and the result-parsing rules.
+
 ## [0.10.0] — 2026-10-31
 
 ### Added
